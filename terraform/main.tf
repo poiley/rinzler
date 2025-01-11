@@ -26,14 +26,6 @@ resource "docker_container" "dockge" {
     }
   }
 
-  dynamic "env" {
-    for_each = try(local.dockge_service.environment, [])
-    content {
-      name  = split("=", env.value)[0]
-      value = try(split("=", env.value)[1], "")
-    }
-  }
-
   dynamic "volumes" {
     for_each = try(local.dockge_service.volumes, [])
     content {

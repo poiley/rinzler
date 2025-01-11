@@ -5,9 +5,7 @@ services:
     restart: unless-stopped
     ports:
       - 5001:5001
-    environment:
-      - DOCKGE_STACKS_DIR=${DOCKGE_STACKS_DIR}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./compose:/stacks
-      - /storage/dockge/data:/data 
+      - ${DOCKGE_STACKS_DIR}/compose:/stacks
+      - /storage/docker_volumes/dockge_data:/data 
