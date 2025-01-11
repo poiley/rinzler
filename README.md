@@ -1,10 +1,20 @@
 # Docker Server Configuration
 
-Infrastructure-as-code for personal media server running:
-- Media: Plex, Sonarr, Radarr, Lidarr, Readarr, Bazarr, Tautulli
-- Networking: Traefik, WireGuard, PiHole
-- Storage: Samba
-- Management: Portainer
+Infrastructure-as-code for personal media server.
+
+## Project Structure
+
+```
+.
+├── compose/                 # Docker Compose configurations
+│   ├── docker-compose.jackett.yml
+│   ├── docker-compose.plex.yml
+│   └── ...                 # Other service configurations
+├── terraform/              # Terraform configurations
+│   ├── versions.tf         # Terraform version constraints
+│   └── .terraform-version  # tfenv version specification
+└── README.md
+```
 
 ## Setup
 
@@ -25,13 +35,30 @@ Infrastructure-as-code for personal media server running:
    ```
 5. Access Dockge at http://localhost:5001
    - Stacks will be automatically detected from the `compose` directory
-   - Each subdirectory (media, networking, storage, other) represents a stack group
 
-## Stack Organization
-- `media/`: Media server applications
-- `networking/`: Reverse proxy and VPN
-- `storage/`: File sharing services
-- `other/`: Other services
+## Usage
+
+### Docker Compose
+
+To start a service:
+```bash
+docker compose -f compose/docker-compose.SERVICE.yml up -d
+```
+Replace `SERVICE` with the service name (e.g., plex, jackett).
+
+### Terraform
+
+Ensure you have the correct Terraform version:
+```bash
+tfenv install
+tfenv use $(cat terraform/.terraform-version)
+```
+
+## Requirements
+
+- Docker & Docker Compose
+- Terraform >= 1.0.0
+- tfenv (recommended)
 
 ## Future Enhancements
 - [ ] Docker Swarm migration
