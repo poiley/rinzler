@@ -22,9 +22,10 @@ Infrastructure-as-code for personal media server running:
 4. Deploy stacks using docker-compose or import into Portainer
 
 ## Stack Organization
-- media/: Media server applications
-- networking/: Reverse proxy and VPN
-- storage/: File sharing services
+- `media/`: Media server applications
+- `networking/`: Reverse proxy and VPN
+- `storage/`: File sharing services
+- `other/`: Other services
 
 ## Future Enhancements
 - [ ] Docker Swarm migration
