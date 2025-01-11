@@ -19,7 +19,13 @@ Infrastructure-as-code for personal media server running:
    - Generate Base64 encoded credentials for Basic Auth
    - Adjust timezone if needed
    - Set appropriate PUID/PGID for your system
-4. Deploy stacks using docker-compose or import into Portainer
+4. Deploy Dockge:
+   ```bash
+   docker compose -f docker-compose.dockge.yml up -d
+   ```
+5. Access Dockge at http://localhost:5001
+   - Stacks will be automatically detected from the `compose` directory
+   - Each subdirectory (media, networking, storage, other) represents a stack group
 
 ## Stack Organization
 - `media/`: Media server applications
