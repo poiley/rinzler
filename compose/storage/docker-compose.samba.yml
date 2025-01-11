@@ -1,0 +1,16 @@
+services:
+  samba:
+    image: dperson/samba:latest
+    container_name: samba
+    environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - TZ=${TZ}
+      - SHARE=mount;/mount;yes;no;yes;all;none;none
+      - WORKGROUP=WORKGROUP
+    ports:
+      - 139:139
+      - 445:445
+    volumes:
+      - /storage:/mount
+    restart: unless-stopped

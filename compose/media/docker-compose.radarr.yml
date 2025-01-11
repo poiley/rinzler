@@ -1,0 +1,41 @@
+services:
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - TZ=${TZ}
+      - RADARR__URLBASE=/radarr
+      - RADARR__AUTHENTICATION_METHOD=1
+    volumes:
+      - radarr_data:/config
+      - /storage/media:/media
+      - /storage/downloads:/downloads
+    networks:
+      - proxy
+    ports:
+      - 7878:7878
+    labels:
+      - "traefik.enable=true"
+      # Main router
+      - "traefik.http.routers.radarr.rule=PathPrefix(`/radarr`)"
+      - "traefik.http.routers.radarr.entrypoints=web"
+      # Authentication first
+      - "traefik.http.middlewares.radarr-auth.headers.customrequestheaders.Authorization=${BASIC_AUTH_HEADER}"
+      # Add base URL handling
+      - "traefik.http.middlewares.radarr-prefix.addprefix.prefix=/radarr"
+      # Then strip prefix for internal routing
+      - "traefik.http.middlewares.radarr-strip.stripprefix.prefixes=/radarr"
+      # Service configuration
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+      # Apply middlewares in correct order
+      - "traefik.http.routers.radarr.middlewares=radarr-auth@docker,radarr-prefix@docker,radarr-strip@docker"
+    restart: unless-stopped
+volumes:
+  radarr_data:
+    external: true
+
+networks:
+  proxy:
+    name: proxy

@@ -1,0 +1,35 @@
+services:
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - TZ=${TZ}
+      - LIDARR__AUTHENTICATION_METHOD=1
+    ports:
+      - 8686:8686
+    volumes:
+      - lidarr_data:/config
+      - /storage/media:/media
+      - /storage/downloads:/downloads
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lidarr.rule=PathPrefix(`/lidarr`)"
+      - "traefik.http.routers.lidarr.entrypoints=web"
+      - "traefik.http.middlewares.lidarr-auth.headers.customrequestheaders.Authorization=${BASIC_AUTH_HEADER}"
+      - "traefik.http.middlewares.lidarr-prefix.addprefix.prefix=/lidarr"
+      - "traefik.http.middlewares.lidarr-strip.stripprefix.prefixes=/lidarr"
+      - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
+      - "traefik.http.routers.lidarr.middlewares=lidarr-auth@docker,lidarr-prefix@docker,lidarr-strip@docker"
+    restart: unless-stopped
+
+networks:
+  proxy:
+    name: proxy
+
+volumes:
+  lidarr_data:
+    external: true

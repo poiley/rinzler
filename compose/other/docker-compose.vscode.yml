@@ -1,0 +1,15 @@
+services:
+  code-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: vscode
+    environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - TZ=${TZ}
+      - DEFAULT_WORKSPACE=/config/workspace
+    volumes:
+      - /storage/docker_volumes/vscode_server:/config
+      - /storage/repos/:/config/workspace
+    ports:
+      - 8443:8443
+    restart: unless-stopped
