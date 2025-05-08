@@ -1,5 +1,50 @@
-# Environment variables
-.env 
+# Terraform
+**/.terraform/
+.terraform/
+.terraform.lock.hcl
+.terraformrc
+terraform.rc
 
-# macOS system files
-.DS_Store 
+# Terraform state and variables
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+
+# Terraform override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform plan files
+*.plan
+tfplan
+**/dev.plan
+**/dev-plan.txt
+**/test.plan
+**/test-plan.txt
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Environment files
+.env
+.env.*
+.envrc
+!.env.example
+
+# Secrets
+secrets/*.yaml
+!secrets/example.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db 
