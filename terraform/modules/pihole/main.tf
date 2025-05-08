@@ -14,15 +14,13 @@ terraform {
 }
 
 provider "pihole" {
-  alias     = "main"
-  url       = local.resolve_var["PIHOLE_URL"]
-  api_token = local.resolve_var["PIHOLE_API_TOKEN"]
+  url       = var.PIHOLE_URL
+  api_token = var.PIHOLE_API_TOKEN
 }
 
 # DNS Records
 resource "pihole_dns_record" "records" {
-  for_each = var.ENABLED && local.resolve_var["PIHOLE_URL"] != "" ? { for r in var.DNS_RECORDS : r.domain => r } : {}
-  provider = pihole.main
+  for_each = var.ENABLED && var.PIHOLE_URL != "" ? { for r in var.DNS_RECORDS : r.domain => r } : {}
 
   domain = each.value.domain
   ip     = each.value.ip

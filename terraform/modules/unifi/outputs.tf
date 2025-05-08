@@ -13,12 +13,12 @@ output "PORT_FORWARDS" {
 
 output "UNIFI_CONTROLLER_URL" {
   description = "URL of the UniFi controller"
-  value       = local.UNIFI_CONTROLLER_URL
+  value       = var.UNIFI_CONTROLLER_URL
 }
 
 output "UNIFI_SITE" {
   description = "Name of the UniFi site"
-  value       = local.UNIFI_SITE
+  value       = var.UNIFI_SITE
 }
 
 output "MAIN_NETWORK" {

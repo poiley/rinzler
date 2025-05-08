@@ -1,55 +1,55 @@
 resource "null_resource" "bootstrap" {
   connection {
     type        = "ssh"
-    user        = local.SSH_USER
-    private_key = local.SSH_PRIVATE_KEY
-    host        = local.SERVER_HOST
+    user        = var.SSH_USER
+    private_key = var.SSH_PRIVATE_KEY
+    host        = var.SERVER_HOST
   }
 
   provisioner "remote-exec" {
     inline = [
       # Install required packages
       "apt-get update",
-      "apt-get install -y ${join(" ", local.PACKAGES)}",
+      "apt-get install -y ${join(" ", var.PACKAGES)}",
 
       # Clone repository
-      "git clone -b ${local.REPO_BRANCH} ${local.REPO_URL} ${local.REPO_PATH}",
+      "git clone -b ${var.REPO_BRANCH} ${var.REPO_URL} ${var.REPO_PATH}",
 
       # Create ZFS dataset
-      "zfs create ${local.ZFS_POOL}/${local.ZFS_DATASET}",
+      "zfs create ${var.ZFS_POOL}/${var.ZFS_DATASET}",
 
       # Configure Docker
       "systemctl enable docker",
       "systemctl start docker",
 
       # Create .env file
-      "cat > ${local.REPO_PATH}/.env << 'EOF'",
-      "DOCKGE_STACKS_DIR='${local.DOCKGE_STACKS_DIR}'",
-      "WIREGUARD_PRIVATE_KEY='${local.WIREGUARD_PRIVATE_KEY}'",
-      "WIREGUARD_ADDRESSES='${local.WIREGUARD_ADDRESSES}'",
-      "PIHOLE_PASSWORD='${local.PIHOLE_PASSWORD}'",
-      "PIHOLE_API_TOKEN='${local.PIHOLE_API_TOKEN}'",
-      "PIHOLE_URL='${local.PIHOLE_URL}'",
-      "GITHUB_TOKEN='${local.GITHUB_TOKEN}'",
-      "GITHUB_OWNER='${local.GITHUB_OWNER}'",
-      "REPOSITORY_NAME='${local.REPOSITORY_NAME}'",
-      "GITHUB_SSH_USER='${local.SSH_USER}'",
-      "GITHUB_SERVER_HOST='${local.SERVER_HOST}'",
-      "GITHUB_SSH_PRIVATE_KEY='${local.SSH_PRIVATE_KEY}'",
-      "GITHUB_RUNNER_TOKEN='${local.RUNNER_TOKEN}'",
-      "UNIFI_CONTROLLER_URL='${local.UNIFI_CONTROLLER_URL}'",
-      "UNIFI_USERNAME='${local.UNIFI_USERNAME}'",
-      "UNIFI_PASSWORD='${local.UNIFI_PASSWORD}'",
-      "UNIFI_API_KEY='${local.UNIFI_API_KEY}'",
-      "UNIFI_SITE='${local.UNIFI_SITE}'",
-      "BASIC_AUTH_HEADER='${local.BASIC_AUTH_HEADER}'",
-      "TZ='${local.TIMEZONE}'",
-      "PUID='${local.PUID}'",
-      "PGID='${local.PGID}'",
+      "cat > ${var.REPO_PATH}/.env << 'EOF'",
+      "DOCKGE_STACKS_DIR='${var.DOCKGE_STACKS_DIR}'",
+      "WIREGUARD_PRIVATE_KEY='${var.WIREGUARD_PRIVATE_KEY}'",
+      "WIREGUARD_ADDRESSES='${var.WIREGUARD_ADDRESSES}'",
+      "PIHOLE_PASSWORD='${var.PIHOLE_PASSWORD}'",
+      "PIHOLE_API_TOKEN='${var.PIHOLE_API_TOKEN}'",
+      "PIHOLE_URL='${var.PIHOLE_URL}'",
+      "GITHUB_TOKEN='${var.GITHUB_TOKEN}'",
+      "GITHUB_OWNER='${var.GITHUB_OWNER}'",
+      "REPOSITORY_NAME='${var.REPOSITORY_NAME}'",
+      "GITHUB_SSH_USER='${var.SSH_USER}'",
+      "GITHUB_SERVER_HOST='${var.SERVER_HOST}'",
+      "GITHUB_SSH_PRIVATE_KEY='${var.SSH_PRIVATE_KEY}'",
+      "GITHUB_RUNNER_TOKEN='${var.RUNNER_TOKEN}'",
+      "UNIFI_CONTROLLER_URL='${var.UNIFI_CONTROLLER_URL}'",
+      "UNIFI_USERNAME='${var.UNIFI_USERNAME}'",
+      "UNIFI_PASSWORD='${var.UNIFI_PASSWORD}'",
+      "UNIFI_API_KEY='${var.UNIFI_API_KEY}'",
+      "UNIFI_SITE='${var.UNIFI_SITE}'",
+      "BASIC_AUTH_HEADER='${var.BASIC_AUTH_HEADER}'",
+      "TZ='${var.TIMEZONE}'",
+      "PUID='${var.PUID}'",
+      "PGID='${var.PGID}'",
       "EOF",
 
       # Start services
-      "cd ${local.REPO_PATH}",
+      "cd ${var.REPO_PATH}",
       "docker-compose up -d"
     ]
   }

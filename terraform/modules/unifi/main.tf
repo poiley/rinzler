@@ -8,10 +8,10 @@ terraform {
 }
 
 provider "unifi" {
-  username       = local.UNIFI_USERNAME
-  password       = local.UNIFI_PASSWORD
-  api_url        = local.UNIFI_CONTROLLER_URL
-  site           = local.UNIFI_SITE
+  username       = var.UNIFI_USERNAME
+  password       = var.UNIFI_PASSWORD
+  api_url        = var.UNIFI_CONTROLLER_URL
+  site           = var.UNIFI_SITE
   allow_insecure = true
 }
 

@@ -5,10 +5,10 @@ output "DNS_RECORDS" {
 
 output "PIHOLE_URL" {
   description = "URL of the Pi-hole instance"
-  value       = local.PIHOLE_URL
+  value       = var.PIHOLE_URL
 }
 
 output "PIHOLE_API_TOKEN" {
   description = "API token for Pi-hole"
-  value       = local.PIHOLE_API_TOKEN
+  value       = var.PIHOLE_API_TOKEN
 } 
