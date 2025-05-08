@@ -1,0 +1,6 @@
+github:
+  owner: "poiley"
+  repo_name: "rinzler"
+  ssh:
+    user: "poile"
+    server_host: "rinzler.lan" 

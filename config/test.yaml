@@ -1,0 +1,10 @@
+test:
+  environment: "test"
+  server:
+    host: "repo.lan"
+    ssh_user: "user"
+
+  repo:
+    url: "https://github.com/poile/rinzler"
+    branch: "master"
+    path: "/opt/rinzler"

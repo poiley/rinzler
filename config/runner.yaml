@@ -1,0 +1,5 @@
+runner:
+  name: "rinzler-runner"
+  dir: "/opt/github-runner"
+  version: "2.314.1"
+  hash: "f4c3af8df563b5a16ea14aba6c13c5c23b5d78a1" 

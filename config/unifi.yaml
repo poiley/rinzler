@@ -1,0 +1,20 @@
+unifi:
+  controller_url: "https://cloudkey.lan"
+  site: "default"
+
+  network:
+    name: "LAN"
+    subnet: "192.168.1.0/24"
+    gateway: "192.168.1.1"
+    dhcp_enabled: true
+    dhcp_start: "192.168.1.6"
+    dhcp_stop: "192.168.1.254"
+    dns_servers: ["192.168.1.227"]
+
+  wan_networks:
+    - name: "Internet 1"
+      wan_type: "dhcp"
+      wan_dns1: "1.1.1.1"
+      wan_dns2: "9.9.9.9"
+      wan_dns3: "208.76.152.1"
+      wan_dns4: "208.76.152.9"

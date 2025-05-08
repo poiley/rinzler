@@ -1,0 +1,31 @@
+bootstrap:
+  packages:
+    - docker.io
+    - docker-compose
+    - git
+    - zfsutils-linux
+    - curl
+    - wget
+    - vim
+    - htop
+    - net-tools
+    - ufw
+    - fail2ban
+    - wireguard
+    - python3-pip
+    - python3-venv
+    - jq
+    - unzip
+    - rsync
+    - nfs-common
+    - samba
+    - samba-common-bin
+  env_vars: {}
+  dockge_stacks_dir: "/storage/repos/rinzler/compose"
+  wireguard:
+    private_key: "private_key_here"
+    addresses: "addresses_here"
+  basic_auth_header: "base64_encoded_credentials_here"
+  tz: "America/Los_Angeles"
+  puid: 1000
+  pgid: 1000 

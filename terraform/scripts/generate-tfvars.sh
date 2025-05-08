@@ -84,7 +84,7 @@ combine_yaml_files() {
     local config_dir=$1
     local env=$2
     local combined_file=$3
-    local secrets_file="${config_dir}/../secrets/${env}.yaml"
+    local secrets_file="${config_dir}/secrets/${env}.yaml"
     
     # Start with an empty YAML file
     echo "{}" > "$combined_file"
