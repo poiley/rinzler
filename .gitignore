@@ -36,8 +36,8 @@ crash.*.log
 !.env.example
 
 # Secrets
-secrets/*.yaml
-!secrets/example.yaml
+config/secrets/*.yaml
+!config/secrets/example.yaml
 
 # IDE
 .vscode/
