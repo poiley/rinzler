@@ -246,22 +246,73 @@ apt-get install curl openssl -y
 
 log "INFO" "=== Starting Homebrew Installation ==="
 debug_log "Starting Homebrew installation"
+
+# Add system state logging
+log "INFO" "System state before Homebrew installation:"
+log "INFO" "Current user: $(whoami)"
+log "INFO" "SUDO_USER: ${SUDO_USER}"
+log "INFO" "Current directory: $(pwd)"
+log "INFO" "Available disk space:"
+df -h /home
+log "INFO" "Memory status:"
+free -h
+log "INFO" "Environment variables:"
+env | grep -E 'HOME|USER|PATH|SUDO' | sort
+
+# Check Homebrew prerequisites with detailed logging
 log "INFO" "Checking Homebrew prerequisites:"
-log_cmd "curl --version" "curl version" || true
-log_cmd "openssl version" "openssl version" || true
+log_cmd "curl --version" "curl version" "show_output" || {
+    log "ERROR" "curl check failed"
+    mark_step "Homebrew prerequisites" "FAILED"
+    return 1
+}
+log_cmd "openssl version" "openssl version" "show_output" || {
+    log "ERROR" "openssl check failed"
+    mark_step "Homebrew prerequisites" "FAILED"
+    return 1
+}
+
+# Check Homebrew directory permissions
 log "INFO" "Homebrew directory permissions before install:"
 ls -la /home/linuxbrew 2>/dev/null || echo "Homebrew directory does not exist yet"
 
 # Install Homebrew if not already installed
 if [[ -d "/home/linuxbrew/.linuxbrew" ]]; then
-    log "INFO" "Homebrew already installed, skipping installation"
+    log "INFO" "Homebrew already installed, checking installation:"
+    log "INFO" "Homebrew directory structure:"
+    ls -la /home/linuxbrew/.linuxbrew || true
+    log "INFO" "Homebrew Cellar directory:"
+    ls -la /home/linuxbrew/.linuxbrew/Cellar 2>/dev/null || echo "Cellar directory does not exist yet"
     BREW_INSTALL_STATUS=0
 else
-    # Install Homebrew
+    # Install Homebrew with detailed logging
     log "INFO" "Installing Homebrew..."
-    sudo -u "${SUDO_USER}" NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || true
+    log "INFO" "Running Homebrew installation as user ${SUDO_USER}"
+    
+    # Create a temporary log file for the installation
+    BREW_INSTALL_LOG="/tmp/homebrew_install_${LOG_DATE}.log"
+    log "INFO" "Homebrew installation log will be saved to: ${BREW_INSTALL_LOG}"
+    
+    # Run Homebrew installation with detailed logging
+    sudo -u "${SUDO_USER}" bash -c "
+        set -x
+        echo '=== Homebrew Installation Started ===' > ${BREW_INSTALL_LOG}
+        echo 'Environment:' >> ${BREW_INSTALL_LOG}
+        env | sort >> ${BREW_INSTALL_LOG}
+        echo 'Current directory: \$(pwd)' >> ${BREW_INSTALL_LOG}
+        echo 'Disk space:' >> ${BREW_INSTALL_LOG}
+        df -h >> ${BREW_INSTALL_LOG}
+        echo 'Starting Homebrew installation...' >> ${BREW_INSTALL_LOG}
+        NONINTERACTIVE=1 /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" >> ${BREW_INSTALL_LOG} 2>&1
+        INSTALL_STATUS=\$?
+        echo 'Installation completed with status: \$INSTALL_STATUS' >> ${BREW_INSTALL_LOG}
+        exit \$INSTALL_STATUS
+    " 2>&1 | tee -a "${LOG_FILE}"
     BREW_INSTALL_STATUS=$?
+    
     log "INFO" "Homebrew installation command exited with status: $BREW_INSTALL_STATUS"
+    log "INFO" "Full Homebrew installation log:"
+    cat "${BREW_INSTALL_LOG}" >> "${LOG_FILE}"
 fi
 
 # Whether installation succeeded or not, try to continue
@@ -276,6 +327,7 @@ if [[ -d "/home/linuxbrew/.linuxbrew" ]]; then
     if [[ $BREW_INSTALL_STATUS -eq 0 ]]; then
         mark_step "Homebrew installation"
     else
+        log "WARN" "Homebrew installation completed with warnings (status: $BREW_INSTALL_STATUS)"
         mark_step "Homebrew installation" "WARNING"
     fi
     
@@ -284,7 +336,11 @@ if [[ -d "/home/linuxbrew/.linuxbrew" ]]; then
     
     # Set proper permissions for Homebrew directory
     log "INFO" "Setting permissions for Homebrew directory..."
-    chown -R "${SUDO_USER}:${SUDO_USER}" /home/linuxbrew/.linuxbrew || true
+    chown -R "${SUDO_USER}:${SUDO_USER}" /home/linuxbrew/.linuxbrew || {
+        log "ERROR" "Failed to set Homebrew directory permissions"
+        log "INFO" "Current permissions:"
+        ls -la /home/linuxbrew/.linuxbrew
+    }
     
     log "INFO" "Permissions after chown:"
     ls -la /home/linuxbrew/.linuxbrew || true
@@ -293,12 +349,12 @@ if [[ -d "/home/linuxbrew/.linuxbrew" ]]; then
     
     # Add Homebrew to environment for the current user
     log "INFO" "Adding Homebrew to shell configuration..."
-    { echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "/home/${SUDO_USER}/.bashrc"; } || true
-    { echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "/home/${SUDO_USER}/.zshrc"; } || true
+    { echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "/home/${SUDO_USER}/.bashrc"; } || log "ERROR" "Failed to add Homebrew to .bashrc"
+    { echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "/home/${SUDO_USER}/.zshrc"; } || log "ERROR" "Failed to add Homebrew to .zshrc"
     
     # Set up Homebrew environment for the current shell
     log "INFO" "Setting up Homebrew environment..."
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" || true
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" || log "ERROR" "Failed to set up Homebrew environment"
     
     log "INFO" "=== Installing yq ==="
     log "INFO" "Homebrew environment:"
