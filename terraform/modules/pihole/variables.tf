@@ -1,28 +1,15 @@
-variable "PIHOLE_URL" {
-  description = "Pi-hole URL"
+variable "pihole_url" {
+  description = "URL of the Pi-hole instance"
   type        = string
-  default     = ""
 }
 
-variable "PIHOLE_API_TOKEN" {
+variable "pihole_api_token" {
   description = "Pi-hole API token"
   type        = string
   sensitive   = true
 }
 
-variable "PIHOLE_PASSWORD" {
-  description = "Pi-hole web interface password"
-  type        = string
-  sensitive   = true
-}
-
-variable "ENABLED" {
-  description = "Whether to enable Pi-hole configuration"
-  type        = bool
-  default     = true
-}
-
-variable "DNS_RECORDS" {
+variable "dns_records" {
   description = "List of DNS records to create"
   type = list(object({
     domain  = string
@@ -30,4 +17,16 @@ variable "DNS_RECORDS" {
     comment = optional(string)
   }))
   default = []
+}
+
+variable "pihole_password" {
+  description = "Password for Pi-hole web UI"
+  type        = string
+  sensitive   = true
+}
+
+variable "enabled" {
+  description = "Whether to enable Pi-hole configuration"
+  type        = bool
+  default     = true
 } 

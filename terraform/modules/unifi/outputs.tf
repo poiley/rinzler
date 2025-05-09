@@ -1,4 +1,4 @@
-output "NETWORKS" {
+output "networks" {
   description = "Created UniFi networks"
   value = {
     main = unifi_network.main
@@ -6,22 +6,22 @@ output "NETWORKS" {
   }
 }
 
-output "PORT_FORWARDS" {
+output "port_forwards" {
   description = "Created UniFi port forwards"
   value       = unifi_port_forward.rules
 }
 
-output "UNIFI_CONTROLLER_URL" {
+output "unifi_controller_url" {
   description = "URL of the UniFi controller"
-  value       = var.UNIFI_CONTROLLER_URL
+  value       = var.unifi_controller_url
 }
 
-output "UNIFI_SITE" {
-  description = "Name of the UniFi site"
-  value       = var.UNIFI_SITE
+output "unifi_site" {
+  description = "Site name in UniFi controller"
+  value       = var.unifi_site
 }
 
-output "MAIN_NETWORK" {
+output "main_network" {
   description = "Main network configuration"
   value = {
     name         = unifi_network.main.name

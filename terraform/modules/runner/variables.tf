@@ -1,81 +1,90 @@
-variable "SERVER_HOST" {
-  description = "Hostname or IP of the server to install the runner on"
-  type        = string
-  default     = ""
-}
-
-variable "SSH_USER" {
-  description = "SSH user for remote execution"
-  type        = string
-  default     = ""
-}
-
-variable "SSH_PRIVATE_KEY" {
-  description = "SSH private key for remote execution"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "GITHUB_REPO_NAME" {
-  description = "GitHub repository name"
-  type        = string
-  default     = ""
-}
-
-variable "GITHUB_TOKEN" {
+variable "github_token" {
   description = "GitHub personal access token"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "GITHUB_SSH_USER" {
-  description = "GitHub SSH user"
+variable "github_owner" {
+  description = "GitHub organization or user name"
   type        = string
-  default     = ""
 }
 
-variable "GITHUB_SERVER_HOST" {
-  description = "GitHub server host"
+variable "repository_name" {
+  description = "Name of the GitHub repository"
   type        = string
-  default     = ""
 }
 
-variable "GITHUB_SSH_PRIVATE_KEY" {
-  description = "GitHub SSH private key path"
+variable "unifi_api_key" {
+  description = "UniFi API key"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "GITHUB_RUNNER_TOKEN" {
+variable "pihole_api_token" {
+  description = "Pi-hole API token"
+  type        = string
+  sensitive   = true
+}
+
+variable "runner_token" {
   description = "GitHub runner registration token"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "RUNNER_NAME" {
+variable "server_host" {
+  description = "Server hostname or IP address"
+  type        = string
+}
+
+variable "ssh_user" {
+  description = "SSH user for server access"
+  type        = string
+}
+
+variable "ssh_private_key" {
+  description = "SSH private key for server access"
+  type        = string
+  sensitive   = true
+}
+
+variable "runner_name" {
   description = "GitHub runner name"
   type        = string
-  default     = "rinzler-runner"
 }
 
-variable "RUNNER_DIR" {
+variable "runner_dir" {
   description = "GitHub runner directory"
   type        = string
-  default     = "/opt/github-runner"
 }
 
-variable "RUNNER_VERSION" {
+variable "runner_version" {
   description = "Version of the GitHub runner to install"
   type        = string
-  default     = "2.323.0"
 }
 
-variable "RUNNER_HASH" {
+variable "runner_hash" {
   description = "SHA-256 hash of the runner package for validation"
   type        = string
-  default     = "0dbc9bf5a58620fc52cb6cc0448abcca964a8d74b5f39773b7afcad9ab691e19"
+}
+
+variable "github_repo_name" {
+  description = "Name of the GitHub repository"
+  type        = string
+}
+
+variable "github_ssh_user" {
+  description = "GitHub SSH user"
+  type        = string
+}
+
+variable "github_server_host" {
+  description = "GitHub server host"
+  type        = string
+}
+
+variable "github_ssh_private_key" {
+  description = "GitHub SSH private key"
+  type        = string
+  sensitive   = true
 } 

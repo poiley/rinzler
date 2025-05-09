@@ -1,24 +1,24 @@
-output "RUNNER_NAME" {
-  description = "Name of the GitHub runner"
-  value       = var.RUNNER_NAME
+output "runner_name" {
+  description = "GitHub runner name"
+  value       = var.runner_name
 }
 
-output "RUNNER_DIR" {
-  description = "Directory where the runner is installed"
-  value       = var.RUNNER_DIR
+output "runner_dir" {
+  description = "GitHub runner directory"
+  value       = var.runner_dir
 }
 
-output "RUNNER_VERSION" {
+output "runner_version" {
   description = "Version of the GitHub runner"
-  value       = var.RUNNER_VERSION
+  value       = var.runner_version
 }
 
-output "GITHUB_REPO_NAME" {
+output "github_repo_name" {
   description = "Name of the GitHub repository"
-  value       = var.GITHUB_REPO_NAME
+  value       = var.github_repo_name
 }
 
-output "SERVER_HOST" {
-  description = "Hostname of the server where the runner is installed"
-  value       = var.SERVER_HOST
+output "server_host" {
+  description = "Server hostname or IP address"
+  value       = var.server_host
 } 

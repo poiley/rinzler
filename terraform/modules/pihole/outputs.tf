@@ -1,14 +1,15 @@
-output "DNS_RECORDS" {
+output "dns_records" {
   description = "Created DNS records"
   value       = pihole_dns_record.records
 }
 
-output "PIHOLE_URL" {
+output "pihole_url" {
   description = "URL of the Pi-hole instance"
-  value       = var.PIHOLE_URL
+  value       = var.pihole_url
 }
 
-output "PIHOLE_API_TOKEN" {
-  description = "API token for Pi-hole"
-  value       = var.PIHOLE_API_TOKEN
+output "pihole_api_token" {
+  description = "Pi-hole API token"
+  value       = var.pihole_api_token
+  sensitive   = true
 } 

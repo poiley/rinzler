@@ -1,46 +1,3 @@
-# Common module for variable resolution
-module "common" {
-  source = "./modules/common"
-
-  UNIFI_CONTROLLER_URL   = var.UNIFI_CONTROLLER_URL
-  UNIFI_API_KEY          = var.UNIFI_API_KEY
-  PIHOLE_URL             = var.PIHOLE_URL
-  PIHOLE_API_TOKEN       = var.PIHOLE_API_TOKEN
-  SERVER_HOST            = var.SERVER_HOST
-  SSH_USER               = var.SSH_USER
-  SSH_PRIVATE_KEY        = var.SSH_PRIVATE_KEY
-  REPO_URL               = var.REPO_URL
-  ZFS_POOL               = var.ZFS_POOL
-  GITHUB_TOKEN           = var.GITHUB_TOKEN
-  GITHUB_OWNER           = var.GITHUB_OWNER
-  REPOSITORY_NAME        = var.REPOSITORY_NAME
-  RUNNER_TOKEN           = var.RUNNER_TOKEN
-  UNIFI_USERNAME         = var.UNIFI_USERNAME
-  UNIFI_PASSWORD         = var.UNIFI_PASSWORD
-  UNIFI_SITE             = var.UNIFI_SITE
-  REPO_BRANCH            = var.REPO_BRANCH
-  REPO_PATH              = var.REPO_PATH
-  ZFS_DATASET            = var.ZFS_DATASET
-  DOCKGE_STACKS_DIR      = var.DOCKGE_STACKS_DIR
-  WIREGUARD_PRIVATE_KEY  = var.WIREGUARD_PRIVATE_KEY
-  WIREGUARD_ADDRESSES    = var.WIREGUARD_ADDRESSES
-  PIHOLE_PASSWORD        = var.PIHOLE_PASSWORD
-  GITHUB_REPO_NAME       = var.GITHUB_REPO_NAME
-  GITHUB_SSH_USER        = var.GITHUB_SSH_USER
-  GITHUB_SERVER_HOST     = var.GITHUB_SERVER_HOST
-  GITHUB_SSH_PRIVATE_KEY = var.GITHUB_SSH_PRIVATE_KEY
-  GITHUB_RUNNER_TOKEN    = var.GITHUB_RUNNER_TOKEN
-  BASIC_AUTH_HEADER      = var.BASIC_AUTH_HEADER
-  TIMEZONE               = var.TIMEZONE
-  PUID                   = var.PUID
-  PGID                   = var.PGID
-  RUNNER_NAME            = var.RUNNER_NAME
-  RUNNER_DIR             = var.RUNNER_DIR
-  RUNNER_VERSION         = var.RUNNER_VERSION
-  RUNNER_HASH            = var.RUNNER_HASH
-  packages               = var.packages
-}
-
 terraform {
   required_providers {
     unifi = {
@@ -67,106 +24,99 @@ terraform {
 }
 
 provider "unifi" {
-  username       = module.common.resolved_variables["UNIFI_USERNAME"]
-  password       = module.common.resolved_variables["UNIFI_PASSWORD"]
-  api_url        = module.common.resolved_variables["UNIFI_CONTROLLER_URL"]
+  username       = var.unifi_username
+  password       = var.unifi_password
+  api_url        = var.unifi_controller_url
   allow_insecure = true
 }
 
 provider "pihole" {
-  url       = module.common.resolved_variables["PIHOLE_URL"]
-  api_token = module.common.resolved_variables["PIHOLE_API_TOKEN"]
+  url       = var.pihole_url
+  api_token = var.pihole_api_token
 }
 
 provider "docker" {}
 
-# GitHub Secrets Management
-module "github" {
-  source = "./modules/github"
-
-  GITHUB_TOKEN     = module.common.resolved_variables["GITHUB_TOKEN"]
-  GITHUB_OWNER     = module.common.resolved_variables["GITHUB_OWNER"]
-  REPOSITORY_NAME  = module.common.resolved_variables["REPOSITORY_NAME"]
-  UNIFI_API_KEY    = module.common.resolved_variables["UNIFI_API_KEY"]
-  PIHOLE_API_TOKEN = module.common.resolved_variables["PIHOLE_API_TOKEN"]
-  RUNNER_TOKEN     = module.common.resolved_variables["RUNNER_TOKEN"]
-  SSH_PRIVATE_KEY  = module.common.resolved_variables["SSH_PRIVATE_KEY"]
-  SERVER_HOST      = module.common.resolved_variables["SERVER_HOST"]
-  SSH_USER         = module.common.resolved_variables["SSH_USER"]
-}
-
 # UniFi Network Configuration
 module "unifi" {
   source               = "./modules/unifi"
-  UNIFI_API_KEY        = module.common.resolved_variables["UNIFI_API_KEY"]
-  UNIFI_CONTROLLER_URL = module.common.resolved_variables["UNIFI_CONTROLLER_URL"]
-  UNIFI_USERNAME       = module.common.resolved_variables["UNIFI_USERNAME"]
-  UNIFI_PASSWORD       = module.common.resolved_variables["UNIFI_PASSWORD"]
-  UNIFI_SITE           = module.common.resolved_variables["UNIFI_SITE"]
-  NETWORK              = var.NETWORK
-  WAN_NETWORKS         = var.WAN_NETWORKS
-  PORT_FORWARDS        = var.PORT_FORWARDS
+  unifi_api_key        = var.unifi_api_key
+  unifi_controller_url = var.unifi_controller_url
+  unifi_username       = var.unifi_username
+  unifi_password       = var.unifi_password
+  unifi_site           = var.unifi_site
+  network              = var.network
+  wan_networks         = var.wan_networks
+  port_forwards        = var.port_forwards
 }
 
 # Pi-hole DNS Configuration
 module "pihole" {
   source           = "./modules/pihole"
-  PIHOLE_URL       = module.common.resolved_variables["PIHOLE_URL"]
-  PIHOLE_API_TOKEN = module.common.resolved_variables["PIHOLE_API_TOKEN"]
-  DNS_RECORDS      = var.DNS_RECORDS
-  PIHOLE_PASSWORD  = module.common.resolved_variables["PIHOLE_PASSWORD"]
+  pihole_url       = var.pihole_url
+  pihole_api_token = var.pihole_api_token
+  dns_records      = var.dns_records
+  pihole_password  = var.pihole_password
 }
 
 # Server Bootstrap Configuration
 module "bootstrap" {
   source = "./modules/bootstrap"
 
-  SERVER_HOST           = module.common.resolved_variables["SERVER_HOST"]
-  SSH_USER              = module.common.resolved_variables["SSH_USER"]
-  SSH_PRIVATE_KEY       = module.common.resolved_variables["SSH_PRIVATE_KEY"]
-  PACKAGES              = module.common.packages
-  REPO_URL              = module.common.resolved_variables["REPO_URL"]
-  REPO_BRANCH           = module.common.resolved_variables["REPO_BRANCH"]
-  REPO_PATH             = module.common.resolved_variables["REPO_PATH"]
-  ENV_VARS              = var.ENV_VARS
-  COMPOSE_FILES         = var.COMPOSE_FILES
-  ZFS_POOL              = module.common.resolved_variables["ZFS_POOL"]
-  ZFS_DATASET           = module.common.resolved_variables["ZFS_DATASET"]
-  GITHUB_TOKEN          = module.common.resolved_variables["GITHUB_TOKEN"]
-  GITHUB_OWNER          = module.common.resolved_variables["GITHUB_OWNER"]
-  REPOSITORY_NAME       = module.common.resolved_variables["REPOSITORY_NAME"]
-  UNIFI_API_KEY         = module.common.resolved_variables["UNIFI_API_KEY"]
-  PIHOLE_API_TOKEN      = module.common.resolved_variables["PIHOLE_API_TOKEN"]
-  RUNNER_TOKEN          = module.common.resolved_variables["RUNNER_TOKEN"]
-  PIHOLE_URL            = module.common.resolved_variables["PIHOLE_URL"]
-  UNIFI_CONTROLLER_URL  = module.common.resolved_variables["UNIFI_CONTROLLER_URL"]
-  UNIFI_USERNAME        = module.common.resolved_variables["UNIFI_USERNAME"]
-  UNIFI_PASSWORD        = module.common.resolved_variables["UNIFI_PASSWORD"]
-  UNIFI_SITE            = module.common.resolved_variables["UNIFI_SITE"]
-  DOCKGE_STACKS_DIR     = module.common.resolved_variables["DOCKGE_STACKS_DIR"]
-  WIREGUARD_PRIVATE_KEY = module.common.resolved_variables["WIREGUARD_PRIVATE_KEY"]
-  WIREGUARD_ADDRESSES   = module.common.resolved_variables["WIREGUARD_ADDRESSES"]
-  PIHOLE_PASSWORD       = module.common.resolved_variables["PIHOLE_PASSWORD"]
-  BASIC_AUTH_HEADER     = module.common.resolved_variables["BASIC_AUTH_HEADER"]
-  PUID                  = module.common.resolved_variables["PUID"]
-  PGID                  = module.common.resolved_variables["PGID"]
-  WAN_NETWORKS          = var.WAN_NETWORKS
+  server_host           = var.server_host
+  ssh_user              = var.ssh_user
+  ssh_private_key       = var.ssh_private_key
+  packages              = var.packages
+  repo_url              = var.repo_url
+  repo_branch           = var.repo_branch
+  repo_path             = var.repo_path
+  env_vars              = var.env_vars
+  zfs_pool              = var.zfs_pool
+  zfs_dataset           = var.zfs_dataset
+  github_token          = var.github_token
+  github_owner          = var.github_owner
+  repository_name       = var.github_repo_name
+  unifi_api_key         = var.unifi_api_key
+  pihole_api_token      = var.pihole_api_token
+  runner_token          = var.github_runner_token
+  pihole_url            = var.pihole_url
+  unifi_controller_url  = var.unifi_controller_url
+  unifi_username        = var.unifi_username
+  unifi_password        = var.unifi_password
+  unifi_site            = var.unifi_site
+  dockge_stacks_dir     = var.dockge_stacks_dir
+  wireguard_private_key = var.wireguard_private_key
+  wireguard_addresses   = var.wireguard_addresses
+  pihole_password       = var.pihole_password
+  basic_auth_header     = var.basic_auth_header
+  puid                  = var.puid
+  pgid                  = var.pgid
+  wan_networks          = var.wan_networks
+  timezone              = var.timezone
 }
 
 # GitHub Runner Configuration
 module "runner" {
-  source                 = "./modules/runner"
-  SERVER_HOST            = module.common.resolved_variables["GITHUB_SERVER_HOST"]
-  SSH_USER               = module.common.resolved_variables["GITHUB_SSH_USER"]
-  SSH_PRIVATE_KEY        = module.common.resolved_variables["GITHUB_SSH_PRIVATE_KEY"]
-  GITHUB_REPO_NAME       = module.common.resolved_variables["GITHUB_REPO_NAME"]
-  GITHUB_TOKEN           = module.common.resolved_variables["GITHUB_TOKEN"]
-  GITHUB_SSH_USER        = module.common.resolved_variables["GITHUB_SSH_USER"]
-  GITHUB_SERVER_HOST     = module.common.resolved_variables["GITHUB_SERVER_HOST"]
-  GITHUB_SSH_PRIVATE_KEY = module.common.resolved_variables["GITHUB_SSH_PRIVATE_KEY"]
-  GITHUB_RUNNER_TOKEN    = module.common.resolved_variables["GITHUB_RUNNER_TOKEN"]
-  RUNNER_NAME            = module.common.resolved_variables["RUNNER_NAME"]
-  RUNNER_DIR             = module.common.resolved_variables["RUNNER_DIR"]
-  RUNNER_VERSION         = module.common.resolved_variables["RUNNER_VERSION"]
-  RUNNER_HASH            = module.common.resolved_variables["RUNNER_HASH"]
+  source = "./modules/runner"
+
+  # GitHub Configuration
+  github_token           = var.github_token
+  github_owner           = var.github_owner
+  repository_name        = var.github_repo_name
+  github_repo_name       = var.github_repo_name
+  github_ssh_user        = var.github_ssh_user
+  github_server_host     = var.github_server_host
+  github_ssh_private_key = var.github_ssh_private_key
+  unifi_api_key          = var.unifi_api_key
+  pihole_api_token       = var.pihole_api_token
+  runner_token           = var.github_runner_token
+
+  # Runner Configuration
+  server_host     = var.server_host
+  ssh_user        = var.ssh_user
+  ssh_private_key = var.ssh_private_key
+  runner_name     = var.runner_name
+  runner_dir      = var.runner_dir
+  runner_version  = var.runner_version
+  runner_hash     = var.runner_hash
 }

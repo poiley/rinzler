@@ -1,4 +1,13 @@
 runner:
+  # GitHub Configuration
+  github:
+    owner: "poiley"
+    repo_name: "rinzler"
+    ssh:
+      user: "poile"
+      server_host: "rinzler.lan"
+
+  # Runner Configuration
   name: "rinzler-runner"
   dir: "/opt/github-runner"
   version: "2.314.1"

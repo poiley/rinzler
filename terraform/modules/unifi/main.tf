@@ -8,28 +8,28 @@ terraform {
 }
 
 provider "unifi" {
-  username       = var.UNIFI_USERNAME
-  password       = var.UNIFI_PASSWORD
-  api_url        = var.UNIFI_CONTROLLER_URL
-  site           = var.UNIFI_SITE
+  username       = var.unifi_username
+  password       = var.unifi_password
+  api_url        = var.unifi_controller_url
+  site           = var.unifi_site
   allow_insecure = true
 }
 
 # Main Network
 resource "unifi_network" "main" {
-  name         = var.NETWORK.name
+  name         = var.network.name
   purpose      = "corporate"
-  subnet       = var.NETWORK.subnet
-  dhcp_enabled = var.NETWORK.dhcp_enabled
-  dhcp_start   = var.NETWORK.dhcp_start
-  dhcp_stop    = var.NETWORK.dhcp_stop
-  dhcp_dns     = var.NETWORK.dns_servers
+  subnet       = var.network.subnet
+  dhcp_enabled = var.network.dhcp_enabled
+  dhcp_start   = var.network.dhcp_start
+  dhcp_stop    = var.network.dhcp_stop
+  dhcp_dns     = var.network.dns_servers
   vlan_id      = 1
 }
 
 # WAN Networks
 resource "unifi_network" "wan" {
-  for_each = { for idx, network in var.WAN_NETWORKS : idx => network }
+  for_each = { for idx, network in var.wan_networks : idx => network }
 
   name     = each.value.name
   purpose  = "wan"
@@ -45,7 +45,7 @@ resource "unifi_network" "wan" {
 # Port Forwards
 resource "unifi_port_forward" "rules" {
   for_each = {
-    for rule in var.PORT_FORWARDS : rule.name => rule
+    for rule in var.port_forwards : rule.name => rule
     if rule.enabled
   }
 

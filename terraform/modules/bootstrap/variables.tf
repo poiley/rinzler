@@ -1,213 +1,179 @@
-variable "SERVER_HOST" {
+variable "server_host" {
   description = "Server hostname or IP address"
   type        = string
-  default     = ""
 }
 
-variable "SSH_USER" {
+variable "ssh_user" {
   description = "SSH user for server access"
   type        = string
-  default     = ""
 }
 
-variable "SSH_PRIVATE_KEY" {
+variable "ssh_private_key" {
   description = "SSH private key for server access"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "PACKAGES" {
+variable "packages" {
   description = "List of packages to install"
   type        = list(string)
   default     = []
 }
 
-variable "REPO_URL" {
+variable "repo_url" {
   description = "Repository URL to clone"
   type        = string
-  default     = ""
 }
 
-variable "REPO_BRANCH" {
+variable "repo_branch" {
   description = "Repository branch to checkout"
   type        = string
-  default     = ""
 }
 
-variable "REPO_PATH" {
+variable "repo_path" {
   description = "Path to repository"
   type        = string
-  default     = "/opt/rinzler"
 }
 
-variable "ENV_VARS" {
+variable "env_vars" {
   description = "Environment variables to set"
   type        = map(string)
   default     = {}
 }
 
-variable "COMPOSE_FILES" {
-  description = "List of compose files to use"
-  type        = list(string)
-  default     = []
-}
-
-variable "TIMEZONE" {
+variable "timezone" {
   description = "Server timezone"
   type        = string
-  default     = "UTC"
 }
 
-variable "DOCKER_COMPOSE_VERSION" {
+variable "docker_compose_version" {
   description = "Docker Compose version to install"
   type        = string
   default     = "v2.24.6"
 }
 
-variable "COMPOSE_DIR" {
+variable "compose_dir" {
   description = "Directory containing Docker Compose files"
   type        = string
   default     = ""
 }
 
-variable "ZFS_POOL" {
+variable "zfs_pool" {
   description = "ZFS pool name"
   type        = string
-  default     = ""
 }
 
-variable "ZFS_DATASET" {
+variable "zfs_dataset" {
   description = "ZFS dataset name"
   type        = string
-  default     = ""
 }
 
-variable "WAN_NETWORKS" {
+variable "wan_networks" {
   description = "WAN network configurations"
-  type = list(object({
-    name     = string
-    wan_type = string
-    wan_dns1 = string
-    wan_dns2 = string
-    wan_dns3 = string
-    wan_dns4 = string
-  }))
+  type        = list(map(any))
 }
 
-variable "GITHUB_TOKEN" {
+variable "github_token" {
   description = "GitHub personal access token"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "GITHUB_OWNER" {
+variable "github_owner" {
   description = "GitHub organization or user name"
   type        = string
-  default     = ""
 }
 
-variable "REPOSITORY_NAME" {
+variable "repository_name" {
   description = "Name of the GitHub repository"
   type        = string
-  default     = ""
 }
 
-variable "UNIFI_API_KEY" {
+variable "unifi_api_key" {
   description = "UniFi API key"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "PIHOLE_API_TOKEN" {
+variable "pihole_api_token" {
   description = "Pi-hole API token"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "RUNNER_TOKEN" {
+variable "runner_token" {
   description = "GitHub runner registration token"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "PIHOLE_URL" {
+variable "pihole_url" {
   description = "URL of the Pi-hole instance"
   type        = string
-  default     = ""
 }
 
-variable "UNIFI_CONTROLLER_URL" {
+variable "unifi_controller_url" {
   description = "URL of the UniFi controller"
   type        = string
-  default     = ""
 }
 
-variable "UNIFI_USERNAME" {
+variable "unifi_username" {
   description = "Username for UniFi controller authentication"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "UNIFI_PASSWORD" {
+variable "unifi_password" {
   description = "Password for UniFi controller authentication"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "UNIFI_SITE" {
+variable "unifi_site" {
   description = "Site name in UniFi controller"
   type        = string
-  default     = ""
 }
 
-variable "DOCKGE_STACKS_DIR" {
+variable "dockge_stacks_dir" {
   description = "Directory for Dockge stacks"
   type        = string
-  default     = ""
 }
 
-variable "WIREGUARD_PRIVATE_KEY" {
+variable "wireguard_private_key" {
   description = "Wireguard private key"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "WIREGUARD_ADDRESSES" {
+variable "wireguard_addresses" {
   description = "Wireguard addresses"
   type        = string
-  default     = ""
 }
 
-variable "PIHOLE_PASSWORD" {
+variable "pihole_password" {
   description = "Password for Pi-hole web UI"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "BASIC_AUTH_HEADER" {
+variable "basic_auth_header" {
   description = "Base64-encoded basic auth header for basic authentication"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "PUID" {
+variable "puid" {
   description = "User ID for Docker containers"
   type        = string
-  default     = ""
 }
 
-variable "PGID" {
+variable "pgid" {
   description = "Group ID for Docker containers"
   type        = string
-  default     = ""
+}
+
+variable "zfs_disk_path" {
+  description = "Path to the disk to use for ZFS pool"
+  type        = string
+  default     = "/dev/sdb"
 } 

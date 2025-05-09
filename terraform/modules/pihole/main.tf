@@ -1,9 +1,3 @@
-variable "enabled" {
-  description = "Whether to enable the Pi-hole module"
-  type        = bool
-  default     = true
-}
-
 terraform {
   required_providers {
     pihole = {
@@ -14,13 +8,13 @@ terraform {
 }
 
 provider "pihole" {
-  url       = var.PIHOLE_URL
-  api_token = var.PIHOLE_API_TOKEN
+  url       = var.pihole_url
+  api_token = var.pihole_api_token
 }
 
 # DNS Records
 resource "pihole_dns_record" "records" {
-  for_each = var.ENABLED && var.PIHOLE_URL != "" ? { for r in var.DNS_RECORDS : r.domain => r } : {}
+  for_each = { for record in var.dns_records : record.domain => record }
 
   domain = each.value.domain
   ip     = each.value.ip

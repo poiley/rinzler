@@ -1,15 +1,14 @@
-variable "UNIFI_CONTROLLER_URL" {
-  description = "URL of the UniFi controller (e.g., https://cloudkey.lan)"
+variable "unifi_controller_url" {
+  description = "URL of the UniFi controller"
   type        = string
 }
 
-variable "UNIFI_API_KEY" {
-  description = "API key for UniFi controller"
+variable "unifi_api_key" {
+  description = "UniFi API key"
   type        = string
-  sensitive   = true
 }
 
-variable "NETWORK" {
+variable "network" {
   description = "Main network configuration"
   type = object({
     name         = string
@@ -22,7 +21,7 @@ variable "NETWORK" {
   })
 }
 
-variable "WAN_NETWORKS" {
+variable "wan_networks" {
   description = "WAN network configurations"
   type = list(object({
     name     = string
@@ -34,7 +33,7 @@ variable "WAN_NETWORKS" {
   }))
 }
 
-variable "PORT_FORWARDS" {
+variable "port_forwards" {
   description = "Port forwarding rules"
   type = list(object({
     name     = string
@@ -44,277 +43,209 @@ variable "PORT_FORWARDS" {
     dst_ip   = string
     enabled  = bool
   }))
-  default = []
 }
 
-variable "PIHOLE_URL" {
-  description = "URL of the Pi-hole instance (e.g., http://192.168.1.227/admin)"
+variable "pihole_url" {
+  description = "URL of the Pi-hole instance"
   type        = string
 }
 
-variable "PIHOLE_API_TOKEN" {
-  description = "API token for Pi-hole"
+variable "pihole_api_token" {
+  description = "Pi-hole API token"
   type        = string
-  sensitive   = true
 }
 
-variable "DNS_RECORDS" {
+variable "dns_records" {
   description = "List of DNS records to create"
   type = list(object({
     domain  = string
     ip      = string
     comment = optional(string)
   }))
-  default = []
 }
 
 # Bootstrap Variables
-variable "SERVER_HOST" {
-  description = "Hostname or IP of the server"
+variable "server_host" {
+  description = "Server hostname or IP address"
   type        = string
-  default     = ""
 }
 
-variable "SSH_USER" {
+variable "ssh_user" {
   description = "SSH user for server access"
   type        = string
-  default     = ""
 }
 
-variable "SSH_PRIVATE_KEY" {
+variable "ssh_private_key" {
   description = "SSH private key for server access"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "packages" {
   description = "List of packages to install"
   type        = list(string)
-  default     = []
 }
 
-variable "REPO_URL" {
+variable "repo_url" {
   description = "Repository URL to clone"
   type        = string
-  default     = ""
 }
 
-variable "REPO_BRANCH" {
+variable "repo_branch" {
   description = "Repository branch to checkout"
   type        = string
-  default     = "master"
 }
 
-variable "REPO_PATH" {
-  description = "Path to clone repository"
+variable "repo_path" {
+  description = "Path to repository"
   type        = string
-  default     = ""
 }
 
-variable "ENV_VARS" {
-  description = "Environment variables to set"
+variable "env_vars" {
+  description = "Environment variables"
   type        = map(string)
-  default     = {}
 }
 
-variable "COMPOSE_FILES" {
-  description = "List of compose files to use"
-  type        = list(string)
-  default     = []
-}
-
-variable "ZFS_POOL" {
+variable "zfs_pool" {
   description = "ZFS pool name"
   type        = string
-  default     = ""
 }
 
-variable "ZFS_DATASET" {
-  description = "ZFS dataset name for docker data"
+variable "zfs_dataset" {
+  description = "ZFS dataset name"
   type        = string
-  default     = ""
 }
 
-variable "GITHUB_TOKEN" {
+variable "github_token" {
   description = "GitHub personal access token"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "GITHUB_OWNER" {
+variable "github_owner" {
   description = "GitHub organization or user name"
   type        = string
-  default     = ""
 }
 
-variable "REPOSITORY_NAME" {
-  description = "Name of the GitHub repository"
-  type        = string
-  default     = ""
-}
 
-variable "RUNNER_TOKEN" {
-  description = "GitHub runner registration token"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "UNIFI_USERNAME" {
+variable "unifi_username" {
   description = "Username for UniFi controller authentication"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "UNIFI_PASSWORD" {
+variable "unifi_password" {
   description = "Password for UniFi controller authentication"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "UNIFI_SITE" {
+variable "unifi_site" {
   description = "Site name in UniFi controller"
   type        = string
-  default     = ""
 }
 
-variable "DOCKGE_STACKS_DIR" {
+variable "dockge_stacks_dir" {
   description = "Directory for Dockge stacks"
   type        = string
-  default     = ""
 }
 
-variable "WIREGUARD_PRIVATE_KEY" {
+variable "wireguard_private_key" {
   description = "Wireguard private key"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "WIREGUARD_ADDRESSES" {
+variable "wireguard_addresses" {
   description = "Wireguard addresses"
   type        = string
-  default     = ""
 }
 
-variable "PIHOLE_PASSWORD" {
+variable "pihole_password" {
   description = "Password for Pi-hole web UI"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "BASIC_AUTH_HEADER" {
+variable "basic_auth_header" {
   description = "Base64-encoded basic auth header for basic authentication"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "PUID" {
+variable "puid" {
   description = "User ID for Docker containers"
   type        = string
-  default     = ""
 }
 
-variable "PGID" {
+variable "pgid" {
   description = "Group ID for Docker containers"
   type        = string
-  default     = ""
 }
 
-variable "TIMEZONE" {
+variable "timezone" {
   description = "Server timezone"
   type        = string
-  default     = ""
 }
 
-variable "RUNNER_NAME" {
-  description = "Name of the GitHub runner"
+variable "runner_name" {
+  description = "GitHub runner name"
   type        = string
-  default     = ""
 }
 
-variable "RUNNER_DIR" {
-  description = "Directory for GitHub runner"
+variable "runner_dir" {
+  description = "GitHub runner directory"
   type        = string
-  default     = "/opt/github-runner"
 }
 
-variable "RUNNER_VERSION" {
-  description = "Version of GitHub runner to install"
+variable "runner_version" {
+  description = "Version of the GitHub runner to install"
   type        = string
-  default     = "2.314.1"
 }
 
-variable "RUNNER_HASH" {
-  description = "Hash of the GitHub runner package"
+variable "runner_hash" {
+  description = "SHA-256 hash of the runner package for validation"
   type        = string
-  default     = "f4c3af8df563b5a16ea14aba6c13c5c23b5d78a1"
 }
 
-variable "GITHUB_REPO_NAME" {
+variable "github_repo_name" {
   description = "Name of the GitHub repository"
   type        = string
-  default     = ""
 }
 
-variable "GITHUB_SSH_USER" {
-  description = "SSH user for GitHub runner"
+variable "github_ssh_user" {
+  description = "GitHub SSH user"
   type        = string
-  default     = ""
 }
 
-variable "GITHUB_SERVER_HOST" {
-  description = "Server host for GitHub runner"
+variable "github_server_host" {
+  description = "GitHub server host"
   type        = string
-  default     = ""
 }
 
-variable "GITHUB_SSH_PRIVATE_KEY" {
-  description = "SSH private key for GitHub runner"
+variable "github_ssh_private_key" {
+  description = "GitHub SSH private key"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
-variable "GITHUB_RUNNER_TOKEN" {
+variable "github_runner_token" {
   description = "GitHub runner registration token"
   type        = string
   sensitive   = true
-  default     = ""
-}
-
-variable "ENVIRONMENT" {
-  description = "Environment name (e.g., test, prod)"
-  type        = string
-  default     = "test"
-}
-
-variable "PACKAGES" {
-  description = "List of packages to install"
-  type        = list(string)
-  default     = []
-}
-
-variable "NETWORK_GATEWAY" {
-  description = "Gateway IP for the main network"
-  type        = string
-  default     = ""
-}
-
-variable "NETWORK_DNS_SERVERS" {
-  description = "List of DNS servers for the main network"
-  type        = list(string)
-  default     = ["1.1.1.1", "1.0.0.1"]
 }
 
 variable "environment" {
   description = "Environment name (e.g., test, prod)"
   type        = string
-  default     = "test"
+}
+
+variable "network_gateway" {
+  description = "Gateway IP for the main network"
+  type        = string
+}
+
+variable "network_dns_servers" {
+  description = "List of DNS servers for the main network"
+  type        = list(string)
 }

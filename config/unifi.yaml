@@ -18,3 +18,17 @@ unifi:
       wan_dns2: "9.9.9.9"
       wan_dns3: "208.76.152.1"
       wan_dns4: "208.76.152.9"
+
+  port_forwards:
+    - name: "Plex TCP"
+      protocol: "tcp"
+      src_port: "32400"
+      dst_port: "32400"
+      dst_ip: "192.168.1.227"
+      enabled: true
+    - name: "Plex UDP"
+      protocol: "udp"
+      src_port: "32400"
+      dst_port: "32400"
+      dst_ip: "192.168.1.227"
+      enabled: true

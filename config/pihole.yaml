@@ -1,2 +1,9 @@
 pihole:
   url: "https://192.168.1.227"
+  dns_records:
+    - domain: "cloudkey.lan"
+      ip: "192.168.1.227"
+      comment: "UniFi Cloud Key"
+    - domain: "rinzler.lan"
+      ip: "192.168.1.227"
+      comment: "Rinzler"

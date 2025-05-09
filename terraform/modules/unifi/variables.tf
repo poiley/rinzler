@@ -1,45 +1,46 @@
-variable "UNIFI_CONTROLLER_URL" {
+variable "unifi_api_key" {
+  description = "UniFi API key"
+  type        = string
+  sensitive   = true
+}
+
+variable "unifi_username" {
+  description = "Username for UniFi controller authentication"
+  type        = string
+  sensitive   = true
+}
+
+variable "unifi_password" {
+  description = "Password for UniFi controller authentication"
+  type        = string
+  sensitive   = true
+}
+
+variable "unifi_controller_url" {
   description = "URL of the UniFi controller"
   type        = string
 }
 
-variable "UNIFI_USERNAME" {
-  description = "Username for the UniFi controller"
+variable "unifi_site" {
+  description = "Site name in UniFi controller"
   type        = string
 }
 
-variable "UNIFI_PASSWORD" {
-  description = "Password for the UniFi controller"
-  type        = string
-  sensitive   = true
-}
-
-variable "UNIFI_API_KEY" {
-  description = "API key for the UniFi controller"
-  type        = string
-  sensitive   = true
-}
-
-variable "UNIFI_SITE" {
-  description = "Name of the UniFi site"
-  type        = string
-  default     = "default"
-}
-
-variable "NETWORK" {
+variable "network" {
   description = "Main network configuration"
   type = object({
     name         = string
     subnet       = string
+    gateway      = string
+    dns_servers  = list(string)
     dhcp_enabled = bool
     dhcp_start   = string
     dhcp_stop    = string
-    dns_servers  = list(string)
   })
 }
 
-variable "WAN_NETWORKS" {
-  description = "List of WAN network configurations"
+variable "wan_networks" {
+  description = "WAN network configurations"
   type = list(object({
     name     = string
     wan_type = string
@@ -48,15 +49,15 @@ variable "WAN_NETWORKS" {
     wan_dns3 = string
     wan_dns4 = string
   }))
-  default = []
 }
 
-variable "PORT_FORWARDS" {
-  description = "List of port forwarding rules"
+variable "port_forwards" {
+  description = "Port forwarding rules"
   type = list(object({
     name     = string
     protocol = string
-    dst_port = number
+    src_port = string
+    dst_port = string
     dst_ip   = string
     enabled  = bool
   }))

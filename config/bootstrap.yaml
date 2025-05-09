@@ -1,5 +1,9 @@
 bootstrap:
   packages:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
     - docker.io
     - docker-compose
     - git
@@ -20,8 +24,38 @@ bootstrap:
     - nfs-common
     - samba
     - samba-common-bin
+    - zsh
+    - fonts-powerline
+    - fonts-firacode
+    - fonts-hack-ttf
+    - fonts-noto-color-emoji
+    - fonts-ubuntu
+    - fontconfig
+    - locales
+    - build-essential
+    - procps
+    - file
+    - git
+    - make
+    - libssl-dev
+    - zlib1g-dev
+    - libbz2-dev
+    - libreadline-dev
+    - libsqlite3-dev
+    - libncursesw5-dev
+    - xz-utils
+    - tk-dev
+    - libxml2-dev
+    - libxmlsec1-dev
+    - libffi-dev
+    - liblzma-dev
+    - yq
   env_vars: {}
   dockge_stacks_dir: "/storage/repos/rinzler/compose"
-  tz: "America/Los_Angeles"
+  timezone: "America/Los_Angeles"
   puid: 1000
-  pgid: 1000 
+  pgid: 1000
+  zfs_pool: "tank"
+  zfs_dataset: "rinzler"
+  wireguard:
+    addresses: "10.0.0.1/24"  # Example WireGuard network 

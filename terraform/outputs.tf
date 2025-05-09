@@ -1,38 +1,38 @@
 # Outputs from UniFi module
-output "UNIFI_NETWORKS" {
+output "unifi_networks" {
   description = "Created UniFi networks"
-  value       = module.unifi.NETWORKS
+  value       = module.unifi.networks
 }
 
-output "UNIFI_PORT_FORWARDS" {
+output "unifi_port_forwards" {
   description = "Created UniFi port forwards"
-  value       = module.unifi.PORT_FORWARDS
+  value       = module.unifi.port_forwards
 }
 
 # Outputs from Pi-hole module
-output "PIHOLE_DNS_RECORDS" {
-  description = "Created Pi-hole DNS records"
-  value       = module.pihole.DNS_RECORDS
+output "dns_records" {
+  description = "Created DNS records"
+  value       = module.pihole.dns_records
 }
 
 # Outputs from Bootstrap module
-output "BOOTSTRAPPED_SERVER" {
-  description = "Details of the bootstrapped server"
-  value       = module.bootstrap.SERVER_HOST
+output "bootstrapped_server" {
+  description = "Bootstrapped server hostname"
+  value       = module.bootstrap.server_host
 }
 
-output "REPOSITORY_PATH" {
-  description = "Path where the repository was cloned"
-  value       = module.bootstrap.REPO_PATH
+output "repository_path" {
+  description = "Path to repository"
+  value       = module.bootstrap.repo_path
 }
 
 # Outputs from Runner module
-output "GITHUB_RUNNER" {
-  description = "Details of the installed GitHub runner"
-  value       = module.runner.RUNNER_NAME
+output "github_runner" {
+  description = "GitHub runner name"
+  value       = module.runner.runner_name
 }
 
-output "RUNNER_INSTALLATION_PATH" {
-  description = "Path where the GitHub runner is installed"
-  value       = module.runner.RUNNER_DIR
+output "runner_installation_path" {
+  description = "GitHub runner installation path"
+  value       = module.runner.runner_dir
 } 
