@@ -16,8 +16,6 @@ bootstrap:
     - ufw
     - fail2ban
     - wireguard
-    - python3-pip
-    - python3-venv
     - jq
     - unzip
     - rsync
@@ -52,7 +50,7 @@ bootstrap:
     - unzip
     - gcc
   env_vars: {}
-  dockge_stacks_dir: "/storage/repos/rinzler/compose"
+  dockge_stacks_dir: "/home/poile/rinzler/compose"
   timezone: "America/Los_Angeles"
   puid: 1000
   pgid: 1000
