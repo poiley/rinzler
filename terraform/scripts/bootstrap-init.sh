@@ -1377,62 +1377,119 @@ log "INFO" "  Docker service enabled: $(systemctl is-enabled docker)"
 mark_step "Docker Setup"
 
 ############################################################
-# Docker Compose Services Setup
+# Docker Compose Services Preflight Validation (Detailed Reporting)
 ############################################################
-# This section:
-# 1. Reads compose directory from config
-# 2. Verifies directory exists and contains compose files
-# 3. Starts all services defined in compose files
-# 4. Verifies services are running
-#
-# Configuration:
-# - Compose directory is read from config/bootstrap.yaml
-# - Default fallback: /home/${GITHUB_SSH_USER}/rinzler/compose
-# - Supports both .yaml and .yml extensions
-#
-# Error handling:
-# - Fails if compose directory not found or empty
-# - Fails if any service fails to start
-# - Verifies all services are running
+# This section runs before launching services:
+# 1. Validates each compose file with 'docker-compose config'
+# 2. Checks for required .env file and missing variables
+# 3. Checks for required host paths in volumes
+# 4. Logs a detailed PASS/FAIL report for each check
+# 5. Summarizes all results in a table at the end
 ############################################################
-log "INFO" "Setting up Docker Compose services..."
-debug_log "Starting Docker Compose services setup"
+log "INFO" "Running preflight validation for Docker Compose files..."
+PRECHECK_FAILED=0
+VALID_COMPOSE_FILES=()
+FAILED_COMPOSE_FILES=()
+COMPOSE_REPORT=()
 
-# Get compose directory from config
-log "INFO" "Reading compose directory from config..."
-COMPOSE_DIR=$(read_yaml "config/bootstrap.yaml" ".bootstrap.dockge_stacks_dir")
-if [[ -z "${COMPOSE_DIR}" ]]; then
-    log "WARN" "No compose directory specified in config, using default: /home/${GITHUB_SSH_USER}/rinzler/compose"
-    COMPOSE_DIR="/home/${GITHUB_SSH_USER}/rinzler/compose"
-fi
-log "INFO" "Using compose directory: ${COMPOSE_DIR}"
-
-# Verify compose directory exists
-if [ ! -d "${COMPOSE_DIR}" ]; then
-    log "ERROR" "Compose directory ${COMPOSE_DIR} not found"
-    log "ERROR" "Please ensure the directory exists and contains docker-compose files"
-    mark_step "Docker Compose Setup" "FAILED"
-    exit 1
-fi
-
-# Find all docker-compose files
-log "INFO" "Searching for docker-compose files..."
-COMPOSE_FILES=$(find "${COMPOSE_DIR}" -maxdepth 1 -name "docker-compose.*.yaml" -o -name "docker-compose.*.yml")
-if [ -z "${COMPOSE_FILES}" ]; then
-    log "ERROR" "No docker-compose files found in ${COMPOSE_DIR}"
-    log "ERROR" "Expected files: docker-compose.*.yaml or docker-compose.*.yml"
-    mark_step "Docker Compose Setup" "FAILED"
-    exit 1
-fi
-
-# Log found compose files
-log "INFO" "Found docker-compose files:"
-echo "${COMPOSE_FILES}" | while read -r file; do
-    log "INFO" "  - ${file}"
+for compose_file in ${COMPOSE_FILES}; do
+    log "INFO" "--- Preflight Report for: ${compose_file} ---"
+    FILE_STATUS="PASS"
+    FILE_ERRORS=()
+    # 1. Validate syntax and interpolation
+    CONFIG_OUTPUT=$(docker-compose -f "${compose_file}" config 2>&1)
+    if [ $? -ne 0 ]; then
+        log "ERROR" "[FAIL] Syntax/Interpolation: docker-compose config failed for ${compose_file}"
+        echo "$CONFIG_OUTPUT" | while read -r line; do log "ERROR" "    $line"; done
+        FILE_STATUS="FAIL"
+        FILE_ERRORS+=("Syntax/Interpolation error")
+    else
+        log "INFO" "[PASS] Syntax/Interpolation"
+    fi
+    # 2. Check for required .env file and missing variables
+    ENV_FILE="$(dirname "${compose_file}")/.env"
+    if grep -q '\${[A-Za-z0-9_]*}' "${compose_file}"; then
+        if [ ! -f "$ENV_FILE" ]; then
+            log "ERROR" "[FAIL] .env file required but not found for ${compose_file}"
+            FILE_STATUS="FAIL"
+            FILE_ERRORS+=("Missing .env file")
+        else
+            # Check for missing variables in .env
+            MISSING_VARS=()
+            VARS=$(grep -o '\${[A-Za-z0-9_]*}' "${compose_file}" | sed 's/[${}]//g' | sort -u)
+            for var in $VARS; do
+                if ! grep -q "^$var=" "$ENV_FILE"; then
+                    MISSING_VARS+=("$var")
+                fi
+            done
+            if [ ${#MISSING_VARS[@]} -ne 0 ]; then
+                log "ERROR" "[FAIL] Missing variables in .env for ${compose_file}: ${MISSING_VARS[*]}"
+                FILE_STATUS="FAIL"
+                FILE_ERRORS+=("Missing .env vars: ${MISSING_VARS[*]}")
+            else
+                log "INFO" "[PASS] .env file and variables present"
+            fi
+        fi
+    else
+        log "INFO" "[PASS] No .env variable interpolation detected"
+    fi
+    # 3. Check for required host paths in volumes
+    HOST_PATHS=$(grep '^[[:space:]]*-[[:space:]]*[^:]*:' "${compose_file}" | grep -v '://' | awk -F: '{print $1}' | sed 's/^[[:space:]]*-//;s/[[:space:]]*$//')
+    HOST_PATHS_MISSING=()
+    for path in $HOST_PATHS; do
+        # Only check absolute paths
+        if [[ "$path" == /* ]] && [ ! -e "$path" ]; then
+            log "ERROR" "[FAIL] Host path $path (referenced in ${compose_file}) does not exist"
+            FILE_STATUS="FAIL"
+            HOST_PATHS_MISSING+=("$path")
+        fi
+    done
+    if [ ${#HOST_PATHS_MISSING[@]} -eq 0 ]; then
+        log "INFO" "[PASS] All required host paths exist"
+    else
+        FILE_ERRORS+=("Missing host paths: ${HOST_PATHS_MISSING[*]}")
+    fi
+    # Record results
+    if [ "$FILE_STATUS" = "PASS" ]; then
+        VALID_COMPOSE_FILES+=("${compose_file}")
+        COMPOSE_REPORT+=("${compose_file}:PASS:")
+        log "INFO" "[SUMMARY] ${compose_file}: PASS"
+    else
+        FAILED_COMPOSE_FILES+=("${compose_file}")
+        COMPOSE_REPORT+=("${compose_file}:FAIL:${FILE_ERRORS[*]}")
+        log "ERROR" "[SUMMARY] ${compose_file}: FAIL (${FILE_ERRORS[*]})"
+        PRECHECK_FAILED=1
+    fi
+    log "INFO" "--- End Preflight Report for: ${compose_file} ---"
 done
 
-# Start each compose file
-for compose_file in ${COMPOSE_FILES}; do
+# Print summary table
+log "INFO" "==== DOCKER COMPOSE PREFLIGHT SUMMARY ===="
+printf "%-40s %-6s %s\n" "Compose File" "Status" "Details"
+for entry in "${COMPOSE_REPORT[@]}"; do
+    file=$(echo "$entry" | cut -d: -f1)
+    status=$(echo "$entry" | cut -d: -f2)
+    details=$(echo "$entry" | cut -d: -f3-)
+    printf "%-40s %-6s %s\n" "$file" "$status" "$details"
+done
+log "INFO" "==== END PREFLIGHT SUMMARY ===="
+
+if [ $PRECHECK_FAILED -eq 1 ]; then
+    log "ERROR" "Some compose files failed preflight validation and will be skipped."
+    log "ERROR" "Failed files: ${FAILED_COMPOSE_FILES[*]}"
+fi
+
+############################################################
+# Docker Compose Services Launch (only valid files)
+############################################################
+if [ ${#VALID_COMPOSE_FILES[@]} -eq 0 ]; then
+    log "ERROR" "No valid compose files to launch after preflight checks."
+    mark_step "Docker Compose Setup" "FAILED"
+    exit 1
+fi
+
+log "INFO" "Launching Docker Compose services for valid files..."
+for compose_file in "${VALID_COMPOSE_FILES[@]}"; do
     log "INFO" "Starting services from ${compose_file}..."
     docker-compose -f "${compose_file}" up -d || {
         log "ERROR" "Failed to start services from ${compose_file}"
