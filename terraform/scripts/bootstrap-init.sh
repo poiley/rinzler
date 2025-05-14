@@ -1392,6 +1392,16 @@ VALID_COMPOSE_FILES=()
 FAILED_COMPOSE_FILES=()
 COMPOSE_REPORT=()
 
+# Find all docker-compose files
+log "INFO" "Searching for docker-compose files..."
+COMPOSE_FILES=$(find "${COMPOSE_DIR}" -maxdepth 1 -name "docker-compose.*.yaml" -o -name "docker-compose.*.yml")
+if [ -z "${COMPOSE_FILES}" ]; then
+    log "ERROR" "No docker-compose files found in ${COMPOSE_DIR}"
+    log "ERROR" "Expected files: docker-compose.*.yaml or docker-compose.*.yml"
+    mark_step "Docker Compose Setup" "FAILED"
+    exit 1
+fi
+
 for compose_file in ${COMPOSE_FILES}; do
     log "INFO" "--- Preflight Report for: ${compose_file} ---"
     FILE_STATUS="PASS"
