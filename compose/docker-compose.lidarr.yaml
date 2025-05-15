@@ -25,6 +25,11 @@ services:
       - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
       - "traefik.http.routers.lidarr.middlewares=lidarr-auth@docker,lidarr-prefix@docker,lidarr-strip@docker"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8686" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   proxy:

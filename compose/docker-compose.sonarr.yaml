@@ -23,6 +23,11 @@ services:
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
       - "traefik.http.routers.sonarr.middlewares=sonarr-auth@docker,sonarr-prefix@docker,sonarr-strip@docker"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8989" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   proxy:

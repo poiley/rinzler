@@ -15,6 +15,11 @@ services:
     ports:
       - 32400:32400
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:32400/web/index.html" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   plex_data:
