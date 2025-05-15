@@ -1392,15 +1392,70 @@ VALID_COMPOSE_FILES=()
 FAILED_COMPOSE_FILES=()
 COMPOSE_REPORT=()
 
+# Get compose directory from config
+log "INFO" "Reading compose directory from config..."
+COMPOSE_DIR=$(read_yaml "config/bootstrap.yaml" ".bootstrap.dockge_stacks_dir")
+if [[ -z "${COMPOSE_DIR}" ]]; then
+    log "WARN" "No compose directory specified in config, using default: /home/${GITHUB_SSH_USER}/rinzler/compose"
+    COMPOSE_DIR="/home/${GITHUB_SSH_USER}/rinzler/compose"
+fi
+log "INFO" "Using compose directory: ${COMPOSE_DIR}"
+
+# Check that COMPOSE_DIR is set
+if [[ -z "${COMPOSE_DIR}" ]]; then
+    log "ERROR" "COMPOSE_DIR is not set. Cannot continue."
+    mark_step "Docker Compose Setup" "FAILED"
+    exit 1
+fi
+
+# Define launch priority
+PRIORITY_FILES=(
+    docker-compose.dockge.yaml
+    docker-compose.pihole.yaml
+    docker-compose.traefik.yaml
+    docker-compose.vpn.yaml
+    docker-compose.torrent_stack.yaml
+    docker-compose.samba.yaml
+    docker-compose.plex.yaml
+)
+
 # Find all docker-compose files
 log "INFO" "Searching for docker-compose files..."
-COMPOSE_FILES=$(find "${COMPOSE_DIR}" -maxdepth 1 -name "docker-compose.*.yaml" -o -name "docker-compose.*.yml")
-if [ -z "${COMPOSE_FILES}" ]; then
+ALL_COMPOSE_FILES=($(find "${COMPOSE_DIR}" -maxdepth 1 -name "docker-compose.*.yaml" -o -name "docker-compose.*.yml" | sort))
+if [ ${#ALL_COMPOSE_FILES[@]} -eq 0 ]; then
     log "ERROR" "No docker-compose files found in ${COMPOSE_DIR}"
     log "ERROR" "Expected files: docker-compose.*.yaml or docker-compose.*.yml"
     mark_step "Docker Compose Setup" "FAILED"
     exit 1
 fi
+
+# Build launch order: priority files first, then the rest
+COMPOSE_FILES=()
+for pf in "${PRIORITY_FILES[@]}"; do
+    for f in "${ALL_COMPOSE_FILES[@]}"; do
+        if [[ "$(basename "$f")" == "$pf" ]]; then
+            COMPOSE_FILES+=("$f")
+        fi
+    done
+}
+for f in "${ALL_COMPOSE_FILES[@]}"; do
+    skip=0
+    for pf in "${PRIORITY_FILES[@]}"; do
+        if [[ "$(basename "$f")" == "$pf" ]]; then
+            skip=1
+            break
+        fi
+    done
+    if [[ $skip -eq 0 ]]; then
+        COMPOSE_FILES+=("$f")
+    fi
+}
+
+# Log launch order
+log "INFO" "Docker Compose launch order will be:"
+for f in "${COMPOSE_FILES[@]}"; do
+    log "INFO" "  - $(basename "$f")"
+done
 
 for compose_file in ${COMPOSE_FILES}; do
     log "INFO" "--- Preflight Report for: ${compose_file} ---"
