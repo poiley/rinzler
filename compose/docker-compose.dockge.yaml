@@ -15,6 +15,11 @@ services:
       - DOCKGE_STACKS_DIR=/opt/stacks
     networks:
       - default
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   default:
