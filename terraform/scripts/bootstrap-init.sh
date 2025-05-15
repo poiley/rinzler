@@ -1437,7 +1437,8 @@ for pf in "${PRIORITY_FILES[@]}"; do
             COMPOSE_FILES+=("$f")
         fi
     done
-}
+done
+
 for f in "${ALL_COMPOSE_FILES[@]}"; do
     skip=0
     for pf in "${PRIORITY_FILES[@]}"; do
@@ -1449,7 +1450,7 @@ for f in "${ALL_COMPOSE_FILES[@]}"; do
     if [[ $skip -eq 0 ]]; then
         COMPOSE_FILES+=("$f")
     fi
-}
+done
 
 # Log launch order
 log "INFO" "Docker Compose launch order will be:"

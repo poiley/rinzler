@@ -9,8 +9,8 @@ services:
       - "5001:5001"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/dockge/data:/app/data
-      - /opt/stacks:/opt/stacks
+      - /storage/docker/dockge/data:/app/data
+      - /storage/docker/dockge/stacks:/opt/stacks
     environment:
       - DOCKGE_STACKS_DIR=/opt/stacks
     networks:
