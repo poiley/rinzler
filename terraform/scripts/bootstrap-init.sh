@@ -505,9 +505,45 @@ mark_step "Initial Setup"
 ############################################################
 log "INFO" "=== Starting Homebrew Installation ==="
 
-# Install Homebrew as SUDO_USER
-    log "INFO" "Installing Homebrew..."
-sudo -u "${SUDO_USER}" bash -c 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' || {
+# Verify we have a valid SUDO_USER
+if [ -z "${SUDO_USER}" ]; then
+    log "ERROR" "SUDO_USER is not set. Cannot proceed with Homebrew installation."
+    mark_step "Homebrew Installation" "FAILED"
+    exit 1
+fi
+
+# Verify SUDO_USER exists
+if ! id "${SUDO_USER}" &>/dev/null; then
+    log "ERROR" "User ${SUDO_USER} does not exist. Cannot proceed with Homebrew installation."
+    mark_step "Homebrew Installation" "FAILED"
+    exit 1
+fi
+
+# Create Homebrew directory with proper permissions
+log "INFO" "Setting up Homebrew directories..."
+mkdir -p /home/linuxbrew/.linuxbrew
+chown -R "${SUDO_USER}:${SUDO_USER}" /home/linuxbrew
+
+# Install Homebrew as SUDO_USER with proper environment
+log "INFO" "Installing Homebrew for user ${SUDO_USER}..."
+sudo -u "${SUDO_USER}" bash -c '
+    # Set up environment for non-interactive installation
+    export NONINTERACTIVE=1
+    export HOMEBREW_NO_ANALYTICS=1
+    export HOMEBREW_NO_ENV_HINTS=1
+    export HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
+    export HOMEBREW_CELLAR="/home/linuxbrew/.linuxbrew/Cellar"
+    export HOMEBREW_REPOSITORY="/home/linuxbrew/.linuxbrew/Homebrew"
+    export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+    export MANPATH="/home/linuxbrew/.linuxbrew/share/man:$MANPATH"
+    export INFOPATH="/home/linuxbrew/.linuxbrew/share/info:$INFOPATH"
+    
+    # Run Homebrew installation script
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || {
+        echo "Homebrew installation failed"
+        exit 1
+    }
+' || {
     log "ERROR" "Homebrew installation failed"
     mark_step "Homebrew Installation" "FAILED"
     exit 1
@@ -523,13 +559,24 @@ fi
 
 # Add Homebrew to PATH and verify
 log "INFO" "Setting up Homebrew environment..."
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" || {
+sudo -u "${SUDO_USER}" bash -c '
+    # Set up Homebrew environment
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" || {
+        echo "Failed to set up Homebrew environment"
+        exit 1
+    }
+    # Verify Homebrew functionality
+    brew --version || {
+        echo "Failed to get Homebrew version"
+        exit 1
+    }
+' || {
     log "ERROR" "Failed to set up Homebrew environment"
     mark_step "Homebrew Installation" "FAILED"
     exit 1
 }
 
-# Verify Homebrew functionality
+# Get Homebrew version for logging
 BREW_VERSION=$(sudo -u "${SUDO_USER}" bash -c 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew --version') || {
     log "ERROR" "Failed to get Homebrew version"
     mark_step "Homebrew Installation" "FAILED"
@@ -541,6 +588,8 @@ log "INFO" "Homebrew environment details:"
 log "INFO" "  Version: ${BREW_VERSION}"
 log "INFO" "  Path: $(which brew)"
 log "INFO" "  Home: $(brew --prefix)"
+log "INFO" "  Cellar: /home/linuxbrew/.linuxbrew/Cellar"
+log "INFO" "  Repository: /home/linuxbrew/.linuxbrew/Homebrew"
 
 mark_step "Homebrew Installation"
 
