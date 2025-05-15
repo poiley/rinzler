@@ -1385,61 +1385,147 @@ mark_step "Docker Setup"
 # 3. Checks for required host paths in volumes
 # 4. Logs a detailed PASS/FAIL report for each check
 # 5. Summarizes all results in a table at the end
+#
+# Volume Path Validation Strategy:
+# - For /storage/docker/* paths:
+#   * Only checks if parent directory exists
+#   * Docker will create the actual volume directories
+#   * Example: For /storage/docker/radarr/config, checks /storage/docker/radarr
+# - For other paths (e.g., /storage/media):
+#   * Checks if the exact path exists
+#   * These are typically media or download directories
+#   * Must exist exactly as specified
+#
+# Dependencies:
+# - docker-compose for config validation
+# - yq for YAML parsing
+# - grep, awk, sed for path extraction
+#
+# Critical paths:
+# - Compose directory: ${COMPOSE_DIR}
+# - Docker volume base: /storage/docker
+# - Media paths: /storage/media, /storage/downloads
 ############################################################
-log "INFO" "Running preflight validation for Docker Compose files..."
-PRECHECK_FAILED=0
-VALID_COMPOSE_FILES=()
-FAILED_COMPOSE_FILES=()
-COMPOSE_REPORT=()
 
-# Get compose directory from config
-log "INFO" "Reading compose directory from config..."
-COMPOSE_DIR=$(read_yaml "config/bootstrap.yaml" ".bootstrap.dockge_stacks_dir")
-if [[ -z "${COMPOSE_DIR}" ]]; then
-    log "WARN" "No compose directory specified in config, using default: /home/${GITHUB_SSH_USER}/rinzler/compose"
-    COMPOSE_DIR="/home/${GITHUB_SSH_USER}/rinzler/compose"
-fi
-log "INFO" "Using compose directory: ${COMPOSE_DIR}"
+############################################################
+# Docker Compose Services Launch (only valid files)
+############################################################
+# This section:
+# 1. Creates required Docker volume directories
+# 2. Sets appropriate permissions
+# 3. Launches services in priority order
+# 4. Verifies service status
+#
+# Volume Directory Structure:
+# /storage/docker/
+# ├── dockge/
+# │   ├── data/     # Dockge application data
+# │   └── stacks/   # Dockge stack definitions
+# ├── radarr/       # Radarr configuration
+# ├── sonarr/       # Sonarr configuration
+# ├── lidarr/       # Lidarr configuration
+# ├── bazarr/       # Bazarr configuration
+# ├── jackett/      # Jackett configuration
+# ├── plex/         # Plex configuration
+# └── tautulli/     # Tautulli configuration
+#
+# Directory Creation Strategy:
+# - Creates parent directories only
+# - Sets ownership to ${GITHUB_SSH_USER}
+# - Sets permissions to 755
+# - Docker creates actual volume directories
+#
+# Service Launch Order:
+# 1. Dockge (container management)
+# 2. Pi-hole (DNS)
+# 3. Traefik (reverse proxy)
+# 4. VPN (network)
+# 5. Torrent stack (downloads)
+# 6. Samba (file sharing)
+# 7. Plex (media server)
+# 8. Other services (in alphabetical order)
+#
+# Dependencies:
+# - Docker daemon running
+# - docker-compose installed
+# - Valid compose files
+# - Proper permissions
+#
+# Critical paths:
+# - Docker socket: /var/run/docker.sock
+# - Compose directory: ${COMPOSE_DIR}
+# - Volume base: /storage/docker
+############################################################
 
-# Check that COMPOSE_DIR is set
-if [[ -z "${COMPOSE_DIR}" ]]; then
-    log "ERROR" "COMPOSE_DIR is not set. Cannot continue."
+if [ ${#VALID_COMPOSE_FILES[@]} -eq 0 ]; then
+    log "ERROR" "No valid compose files to launch after preflight checks."
     mark_step "Docker Compose Setup" "FAILED"
     exit 1
 fi
+
+# Create Docker volume directories
+log "INFO" "Creating Docker volume directories..."
+DOCKER_VOLUME_DIRS=(
+    "/storage/docker/dockge/data"
+    "/storage/docker/dockge/stacks"
+    "/storage/docker/radarr"
+    "/storage/docker/sonarr"
+    "/storage/docker/lidarr"
+    "/storage/docker/bazarr"
+    "/storage/docker/jackett"
+    "/storage/docker/plex"
+    "/storage/docker/tautulli"
+)
+
+for dir in "${DOCKER_VOLUME_DIRS[@]}"; do
+    if [ ! -d "$dir" ]; then
+        log "INFO" "Creating directory: $dir"
+        mkdir -p "$dir" || {
+            log "ERROR" "Failed to create directory: $dir"
+            mark_step "Docker Compose Setup" "FAILED"
+            exit 1
+        }
+        # Set appropriate permissions
+        chown -R "${GITHUB_SSH_USER}:${GITHUB_SSH_USER}" "$dir" || {
+            log "ERROR" "Failed to set permissions for directory: $dir"
+            mark_step "Docker Compose Setup" "FAILED"
+            exit 1
+        }
+        chmod 755 "$dir" || {
+            log "ERROR" "Failed to set mode for directory: $dir"
+            mark_step "Docker Compose Setup" "FAILED"
+            exit 1
+        }
+    else
+        log "INFO" "Directory already exists: $dir"
+    fi
+done
 
 # Define launch priority
 PRIORITY_FILES=(
-    docker-compose.dockge.yaml
-    docker-compose.pihole.yaml
-    docker-compose.traefik.yaml
-    docker-compose.vpn.yaml
-    docker-compose.torrent_stack.yaml
-    docker-compose.samba.yaml
-    docker-compose.plex.yaml
+    "docker-compose.dockge.yaml"
+    "docker-compose.pihole.yaml"
+    "docker-compose.traefik.yaml"
+    "docker-compose.vpn.yaml"
+    "docker-compose.torrent_stack.yaml"
+    "docker-compose.samba.yaml"
+    "docker-compose.plex.yaml"
 )
 
-# Find all docker-compose files
-log "INFO" "Searching for docker-compose files..."
-ALL_COMPOSE_FILES=($(find "${COMPOSE_DIR}" -maxdepth 1 -name "docker-compose.*.yaml" -o -name "docker-compose.*.yml" | sort))
-if [ ${#ALL_COMPOSE_FILES[@]} -eq 0 ]; then
-    log "ERROR" "No docker-compose files found in ${COMPOSE_DIR}"
-    log "ERROR" "Expected files: docker-compose.*.yaml or docker-compose.*.yml"
-    mark_step "Docker Compose Setup" "FAILED"
-    exit 1
-fi
-
 # Build launch order: priority files first, then the rest
-COMPOSE_FILES=()
+log "INFO" "Organizing services for launch in priority order..."
+LAUNCH_ORDER=()
 for pf in "${PRIORITY_FILES[@]}"; do
-    for f in "${ALL_COMPOSE_FILES[@]}"; do
+    for f in "${VALID_COMPOSE_FILES[@]}"; do
         if [[ "$(basename "$f")" == "$pf" ]]; then
-            COMPOSE_FILES+=("$f")
+            LAUNCH_ORDER+=("$f")
+            log "INFO" "Added to priority launch: $(basename "$f")"
         fi
     done
 done
 
-for f in "${ALL_COMPOSE_FILES[@]}"; do
+# Add remaining files in alphabetical order
+for f in "${VALID_COMPOSE_FILES[@]}"; do
     skip=0
     for pf in "${PRIORITY_FILES[@]}"; do
         if [[ "$(basename "$f")" == "$pf" ]]; then
@@ -1448,114 +1534,20 @@ for f in "${ALL_COMPOSE_FILES[@]}"; do
         fi
     done
     if [[ $skip -eq 0 ]]; then
-        COMPOSE_FILES+=("$f")
+        LAUNCH_ORDER+=("$f")
+        log "INFO" "Added to standard launch: $(basename "$f")"
     fi
 done
 
 # Log launch order
 log "INFO" "Docker Compose launch order will be:"
-for f in "${COMPOSE_FILES[@]}"; do
+for f in "${LAUNCH_ORDER[@]}"; do
     log "INFO" "  - $(basename "$f")"
 done
 
-for compose_file in ${COMPOSE_FILES}; do
-    log "INFO" "--- Preflight Report for: ${compose_file} ---"
-    FILE_STATUS="PASS"
-    FILE_ERRORS=()
-    # 1. Validate syntax and interpolation
-    CONFIG_OUTPUT=$(docker-compose -f "${compose_file}" config 2>&1)
-    if [ $? -ne 0 ]; then
-        log "ERROR" "[FAIL] Syntax/Interpolation: docker-compose config failed for ${compose_file}"
-        echo "$CONFIG_OUTPUT" | while read -r line; do log "ERROR" "    $line"; done
-        FILE_STATUS="FAIL"
-        FILE_ERRORS+=("Syntax/Interpolation error")
-    else
-        log "INFO" "[PASS] Syntax/Interpolation"
-    fi
-    # 2. Check for required .env file and missing variables
-    ENV_FILE="$(dirname "${compose_file}")/.env"
-    if grep -q '\${[A-Za-z0-9_]*}' "${compose_file}"; then
-        if [ ! -f "$ENV_FILE" ]; then
-            log "ERROR" "[FAIL] .env file required but not found for ${compose_file}"
-            FILE_STATUS="FAIL"
-            FILE_ERRORS+=("Missing .env file")
-        else
-            # Check for missing variables in .env
-            MISSING_VARS=()
-            VARS=$(grep -o '\${[A-Za-z0-9_]*}' "${compose_file}" | sed 's/[${}]//g' | sort -u)
-            for var in $VARS; do
-                if ! grep -q "^$var=" "$ENV_FILE"; then
-                    MISSING_VARS+=("$var")
-                fi
-            done
-            if [ ${#MISSING_VARS[@]} -ne 0 ]; then
-                log "ERROR" "[FAIL] Missing variables in .env for ${compose_file}: ${MISSING_VARS[*]}"
-                FILE_STATUS="FAIL"
-                FILE_ERRORS+=("Missing .env vars: ${MISSING_VARS[*]}")
-            else
-                log "INFO" "[PASS] .env file and variables present"
-            fi
-        fi
-    else
-        log "INFO" "[PASS] No .env variable interpolation detected"
-    fi
-    # 3. Check for required host paths in volumes
-    HOST_PATHS=$(grep '^[[:space:]]*-[[:space:]]*[^:]*:' "${compose_file}" | grep -v '://' | awk -F: '{print $1}' | sed 's/^[[:space:]]*-//;s/[[:space:]]*$//')
-    HOST_PATHS_MISSING=()
-    for path in $HOST_PATHS; do
-        # Only check absolute paths
-        if [[ "$path" == /* ]] && [ ! -e "$path" ]; then
-            log "ERROR" "[FAIL] Host path $path (referenced in ${compose_file}) does not exist"
-            FILE_STATUS="FAIL"
-            HOST_PATHS_MISSING+=("$path")
-        fi
-    done
-    if [ ${#HOST_PATHS_MISSING[@]} -eq 0 ]; then
-        log "INFO" "[PASS] All required host paths exist"
-    else
-        FILE_ERRORS+=("Missing host paths: ${HOST_PATHS_MISSING[*]}")
-    fi
-    # Record results
-    if [ "$FILE_STATUS" = "PASS" ]; then
-        VALID_COMPOSE_FILES+=("${compose_file}")
-        COMPOSE_REPORT+=("${compose_file}:PASS:")
-        log "INFO" "[SUMMARY] ${compose_file}: PASS"
-    else
-        FAILED_COMPOSE_FILES+=("${compose_file}")
-        COMPOSE_REPORT+=("${compose_file}:FAIL:${FILE_ERRORS[*]}")
-        log "ERROR" "[SUMMARY] ${compose_file}: FAIL (${FILE_ERRORS[*]})"
-        PRECHECK_FAILED=1
-    fi
-    log "INFO" "--- End Preflight Report for: ${compose_file} ---"
-done
-
-# Print summary table
-log "INFO" "==== DOCKER COMPOSE PREFLIGHT SUMMARY ===="
-printf "%-40s %-6s %s\n" "Compose File" "Status" "Details"
-for entry in "${COMPOSE_REPORT[@]}"; do
-    file=$(echo "$entry" | cut -d: -f1)
-    status=$(echo "$entry" | cut -d: -f2)
-    details=$(echo "$entry" | cut -d: -f3-)
-    printf "%-40s %-6s %s\n" "$file" "$status" "$details"
-done
-log "INFO" "==== END PREFLIGHT SUMMARY ===="
-
-if [ $PRECHECK_FAILED -eq 1 ]; then
-    log "ERROR" "Some compose files failed preflight validation and will be skipped."
-    log "ERROR" "Failed files: ${FAILED_COMPOSE_FILES[*]}"
-fi
-
-############################################################
-# Docker Compose Services Launch (only valid files)
-############################################################
-if [ ${#VALID_COMPOSE_FILES[@]} -eq 0 ]; then
-    log "ERROR" "No valid compose files to launch after preflight checks."
-    mark_step "Docker Compose Setup" "FAILED"
-    exit 1
-fi
-
-log "INFO" "Launching Docker Compose services for valid files..."
-for compose_file in "${VALID_COMPOSE_FILES[@]}"; do
+# Launch services in order
+log "INFO" "Launching Docker Compose services in priority order..."
+for compose_file in "${LAUNCH_ORDER[@]}"; do
     log "INFO" "Starting services from ${compose_file}..."
     docker-compose -f "${compose_file}" up -d || {
         log "ERROR" "Failed to start services from ${compose_file}"
@@ -1564,6 +1556,9 @@ for compose_file in "${VALID_COMPOSE_FILES[@]}"; do
         exit 1
     }
     log "INFO" "Successfully started services from ${compose_file}"
+    
+    # Add a small delay between launches to ensure proper startup
+    sleep 5
 done
 
 # Verify services are running

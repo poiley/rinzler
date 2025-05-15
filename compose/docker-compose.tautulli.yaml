@@ -19,7 +19,12 @@ services:
 
 volumes:
   tautulli_data:
-    external: true
+    name: tautulli_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/tautulli/config
 
 networks:
   proxy:

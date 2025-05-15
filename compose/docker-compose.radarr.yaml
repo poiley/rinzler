@@ -34,7 +34,12 @@ services:
 
 volumes:
   radarr_data:
-    external: true
+    name: radarr_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/radarr/config
 
 networks:
   proxy:

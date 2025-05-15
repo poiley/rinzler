@@ -32,4 +32,9 @@ networks:
 
 volumes:
   lidarr_data:
-    external: true
+    name: lidarr_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/lidarr/config

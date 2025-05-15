@@ -12,10 +12,18 @@ services:
       - SERVERURL=auto
       - PEERS=3
     volumes:
-      - /storage/docker_volumes/wireguard/config:/config
+      - wireguard_config:/config
       - /lib/modules:/lib/modules
     ports:
       - 51820:51820/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
+
+volumes:
+  wireguard_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/wireguard/config

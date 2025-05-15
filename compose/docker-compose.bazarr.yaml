@@ -7,9 +7,18 @@ services:
       - PUID=${PUID}
       - TZ=${TZ}
     volumes:
-      - /storage/docker_volumes/bazarr_config:/config
+      - bazarr_data:/config
       - /storage/media/movies:/movies
       - /storage/media/tv:/tv
     ports:
       - 6767:6767
     restart: unless-stopped
+
+volumes:
+  bazarr_data:
+    name: bazarr_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/bazarr/config

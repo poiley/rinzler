@@ -30,4 +30,9 @@ networks:
 
 volumes:
   sonarr_data:
-    external: true
+    name: sonarr_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/sonarr/config

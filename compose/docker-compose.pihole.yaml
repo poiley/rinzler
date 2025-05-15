@@ -11,6 +11,20 @@ services:
       WEBPASSWORD: ${PIHOLE_PASSWORD}
       RATE_LIMIT: '0/0'
     volumes:
-      - '/storage/docker_volumes/pihole/etc-pihole:/etc/pihole'
-      - '/storage/docker_volumes/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+      - pihole_etc:/etc/pihole
+      - pihole_dnsmasq:/etc/dnsmasq.d
     restart: unless-stopped
+
+volumes:
+  pihole_etc:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/pihole/etc-pihole
+  pihole_dnsmasq:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/pihole/etc-dnsmasq.d

@@ -10,7 +10,7 @@ services:
       - PLEX_MEDIA_SERVER_USER=${PLEX_MEDIA_SERVER_USER}
       - VERSION=docker
     volumes:
-      - /storage/docker_volumes/plex_data/plex_data/_data:/config
+      - plex_data:/config
       - /storage/media:/media
     ports:
       - 32400:32400
@@ -18,4 +18,9 @@ services:
 
 volumes:
   plex_data:
-    external: true 
+    name: plex_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/plex/config 

@@ -9,8 +9,8 @@ services:
       - "5001:5001"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /storage/docker/dockge/data:/app/data
-      - /storage/docker/dockge/stacks:/opt/stacks
+      - dockge_data:/app/data
+      - dockge_stacks:/opt/stacks
     environment:
       - DOCKGE_STACKS_DIR=/opt/stacks
     networks:
@@ -19,4 +19,20 @@ services:
 networks:
   default:
     name: dockge
-    driver: bridge 
+    driver: bridge
+
+volumes:
+  dockge_data:
+    name: dockge_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/dockge/data
+  dockge_stacks:
+    name: dockge_stacks
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /storage/docker/dockge/stacks 
