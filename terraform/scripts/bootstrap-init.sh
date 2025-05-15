@@ -1408,6 +1408,74 @@ done
 
 log "INFO" "All required directories created and configured"
 
+# Docker Compose Service Launch
+log "INFO" "=== Starting Docker Compose Services ==="
+
+# Define service launch order based on dependencies
+declare -a SERVICE_ORDER=(
+    "docker-compose.traefik.yaml"        # Core networking
+    "docker-compose.vpn.yaml"            # VPN service
+    "docker-compose.monitoring.yaml"      # Monitoring stack
+    "docker-compose.dockge.yaml"         # Container management
+    "docker-compose.pihole.yaml"         # DNS service
+    "docker-compose.flaresolverr.yaml"   # Cloudflare resolver
+    "docker-compose.plex.yaml"           # Media server
+    "docker-compose.tautulli.yaml"       # Plex monitoring
+    "docker-compose.radarr.yaml"         # Movies
+    "docker-compose.sonarr.yaml"         # TV Shows
+    "docker-compose.lidarr.yaml"         # Music
+    "docker-compose.bazarr.yaml"         # Subtitles
+    "docker-compose.jackett.yaml"        # Torrent indexer
+    "docker-compose.torrent_stack.yaml"  # Torrent client
+    "docker-compose.samba.yaml"          # File sharing
+)
+
+# Function to start a compose service
+start_compose_service() {
+    local compose_file="$1"
+    local service_name=$(basename "${compose_file}" .yaml)
+    
+    log "INFO" "Starting ${service_name}..."
+    if [ -f "${COMPOSE_DIR}/${compose_file}" ]; then
+        cd "${COMPOSE_DIR}" && \
+        sudo -u "${GITHUB_SSH_USER}" docker-compose -f "${compose_file}" up -d || {
+            log "ERROR" "Failed to start ${service_name}"
+            return 1
+        }
+        log "INFO" "Successfully started ${service_name}"
+        # Wait for containers to be healthy
+        sleep 5
+    else
+        log "WARN" "Compose file not found: ${compose_file}"
+        return 1
+    fi
+}
+
+# Start services in order
+log "INFO" "Launching services in priority order..."
+for compose_file in "${SERVICE_ORDER[@]}"; do
+    start_compose_service "${compose_file}"
+done
+
+# Verify all services are running
+log "INFO" "Verifying service health..."
+cd "${COMPOSE_DIR}"
+for compose_file in "${SERVICE_ORDER[@]}"; do
+    if [ -f "${compose_file}" ]; then
+        service_name=$(basename "${compose_file}" .yaml)
+        log "INFO" "Checking ${service_name}..."
+        sudo -u "${GITHUB_SSH_USER}" docker-compose -f "${compose_file}" ps --format json | grep -q "running" || {
+            log "WARN" "${service_name} may not be running properly"
+        }
+    fi
+done
+
+# Final status check
+log "INFO" "All services launched. Current status:"
+sudo -u "${GITHUB_SSH_USER}" docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+log "INFO" "=== Docker Compose Services Started ==="
+
 ############################################################
 # Script Completion
 ############################################################
