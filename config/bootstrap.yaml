@@ -49,11 +49,13 @@ bootstrap:
     - liblzma-dev
     - unzip
     - gcc
-  env_vars: {}
+  env_vars: 
+    - TZ=America/Los_Angeles
+    - PGID=1000
+    - PUID=1000
+    - PLEX_MEDIA_SERVER_USER=ben.poile
+    
   dockge_stacks_dir: "/home/poile/rinzler/compose"
-  timezone: "America/Los_Angeles"
-  puid: 1000
-  pgid: 1000
   zfs_pool: "rinzler"
   wireguard:
     addresses: "10.0.0.1/24"  # Example WireGuard network 
