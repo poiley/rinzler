@@ -1,0 +1,27 @@
+#cloud-config
+users:
+  - name: poile
+    groups: sudo
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    lock_passwd: false
+    passwd: ""
+ssh_pwauth: true
+
+write_files:
+  - path: /etc/systemd/system/serial-getty@ttyS0.service.d/override.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=-/sbin/agetty --autologin poile --keep-baud 115200,38400,9600 %I $TERM
+
+growpart:
+  mode: auto
+  devices: ["/"]
+  ignore_growroot_disabled: false
+
+runcmd:
+  - growpart /dev/vda 1
+  - resize2fs /dev/vda1
+  - systemctl daemon-reexec
+  - systemctl restart serial-getty@ttyS0

@@ -1,0 +1,113 @@
+name: Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'status'
+        type: choice
+        options:
+          - status
+          - start
+          - stop
+          - restart
+
+env:
+  TF_WORKSPACE: dev
+  TF_INPUT: false
+  TF_IN_AUTOMATION: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  runner:
+    name: Runner
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        env:
+          UNIFI_CONTROLLER_URL: ${{ secrets.UNIFI_CONTROLLER_URL }}
+          UNIFI_USERNAME: ${{ secrets.UNIFI_USERNAME }}
+          UNIFI_PASSWORD: ${{ secrets.UNIFI_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REPO_URL: ${{ secrets.REPO_URL }}
+          REPO_BRANCH: ${{ secrets.REPO_BRANCH }}
+          REPO_PATH: ${{ secrets.REPO_PATH }}
+
+      - name: Terraform Output
+        id: output
+        run: |
+          echo "runner_ip=$(terraform output -raw runner_ip)" >> $GITHUB_OUTPUT
+          echo "ssh_user=$(terraform output -raw ssh_user)" >> $GITHUB_OUTPUT
+
+      - name: Check Runner Status
+        if: github.event.inputs.action == 'status'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ steps.output.outputs.runner_ip }}
+          username: ${{ steps.output.outputs.ssh_user }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            systemctl status github-runner || true
+            ps aux | grep runner || true
+
+      - name: Start Runner
+        if: github.event.inputs.action == 'start'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ steps.output.outputs.runner_ip }}
+          username: ${{ steps.output.outputs.ssh_user }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            systemctl start github-runner
+            systemctl status github-runner
+
+      - name: Stop Runner
+        if: github.event.inputs.action == 'stop'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ steps.output.outputs.runner_ip }}
+          username: ${{ steps.output.outputs.ssh_user }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            systemctl stop github-runner
+            systemctl status github-runner
+
+      - name: Restart Runner
+        if: github.event.inputs.action == 'restart'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ steps.output.outputs.runner_ip }}
+          username: ${{ steps.output.outputs.ssh_user }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            systemctl restart github-runner
+            systemctl status github-runner 

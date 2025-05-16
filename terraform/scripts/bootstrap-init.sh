@@ -240,6 +240,106 @@ log_with_rotation() {
 }
 
 ############################################################
+# Helper Functions
+############################################################
+# Function to mark a step as complete or failed
+mark_step() {
+    local step="$1"
+    local status="${2:-DONE}"
+    log "INFO" "=== ${step} ${status} ==="
+}
+
+# Function to read YAML values without yq (for initial setup)
+read_yaml_simple() {
+    local file="$1"
+    local key="$2"
+    
+    if [ ! -f "$file" ]; then
+        log "ERROR" "File not found: $file"
+        return 1
+    fi
+    
+    # Convert dot notation to nested key search
+    local search_pattern=""
+    local indent_level=0
+    IFS='.' read -ra KEY_PARTS <<< "$key"
+    for part in "${KEY_PARTS[@]}"; do
+        search_pattern="${search_pattern}[[:space:]]*${part}:"
+        ((indent_level++))
+    done
+    
+    # Simple YAML parser using grep and sed
+    # Handles nested keys with proper indentation
+    value=$(awk -v pattern="$search_pattern" -v indent=$indent_level '
+        $0 ~ pattern {
+            # Extract the value after the colon
+            value = gensub(/^[[:space:]]*[^:]+:[[:space:]]*"?([^"]*)"?[[:space:]]*$/, "\\1", 1)
+            print value
+            exit
+        }
+    ' "$file")
+    
+    if [ -z "$value" ]; then
+        log "WARN" "Key not found: $key in $file"
+        return 1
+    fi
+    
+    echo "$value"
+}
+
+# Function to read environment variables from YAML without yq
+read_env_vars_simple() {
+    local yaml_file="$1"
+    if [ ! -f "${yaml_file}" ]; then
+        log "ERROR" "Bootstrap config file not found: ${yaml_file}"
+        return 1
+    fi
+    
+    # Read environment variables using awk
+    # Handles nested YAML structure
+    local env_vars
+    env_vars=$(awk '
+        # Start capturing after env_vars: line
+        /^[[:space:]]*env_vars:/ { in_env = 1; next }
+        
+        # Stop capturing at next non-indented line
+        /^[^[:space:]]/ { if (in_env) exit }
+        
+        # Process env var lines
+        in_env && /^[[:space:]+][A-Za-z_][A-Za-z0-9_]*:/ {
+            # Extract key and value
+            key = gensub(/^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*):[[:space:]]*.*$/, "\\1", 1)
+            value = gensub(/^[[:space:]]*[^:]+:[[:space:]]*"?([^"]*)"?[[:space:]]*$/, "\\1", 1)
+            print key "=" value
+        }
+    ' "${yaml_file}")
+    
+    echo "${env_vars}"
+}
+
+# Function to safely write to shell rc files
+write_to_rc_file() {
+    local file="$1"
+    local content="$2"
+    local backup="${file}.bak"
+    
+    # Create backup if file exists
+    if [ -f "${file}" ]; then
+        cp "${file}" "${backup}"
+    fi
+    
+    # Append content if not already present
+    if ! grep -q "# === Bootstrap Environment Variables ===" "${file}" 2>/dev/null; then
+        echo -e "\n# === Bootstrap Environment Variables ===" >> "${file}"
+        echo "${content}" >> "${file}"
+        echo "# === End Bootstrap Environment Variables ===" >> "${file}"
+        log "INFO" "Updated ${file} with environment variables"
+    else
+        log "INFO" "Environment variables already present in ${file}"
+    fi
+}
+
+############################################################
 # Logging Setup
 ############################################################
 # Initialize logging variables
@@ -291,84 +391,22 @@ log "INFO" "Current directory: $(pwd)" "disk_space=$(df -h . | tail -n1 | awk '{
 set -u # Exit on undefined variables
 
 ############################################################
-# Environment Variables Setup
+# Initial Environment Setup (Pre-yq)
 ############################################################
-log "INFO" "=== Setting up Environment Variables ==="
+log "INFO" "Setting up initial environment variables..."
 
-# Function to safely write to shell rc files
-write_to_rc_file() {
-    local file="$1"
-    local content="$2"
-    local backup="${file}.bak"
-    
-    # Create backup if file exists
-    if [ -f "${file}" ]; then
-        cp "${file}" "${backup}"
+# Read environment variables directly from YAML using grep/sed before yq is available
+while IFS= read -r line; do
+    if [[ $line =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*:[[:space:]]*(.+)$ ]]; then
+        key="${BASH_REMATCH[1]}"
+        value="${BASH_REMATCH[2]}"
+        # Remove any quotes from the value
+        value="${value#\"}"
+        value="${value%\"}"
+        export "$key=$value"
+        log "INFO" "Set initial environment variable: $key"
     fi
-    
-    # Append content if not already present
-    if ! grep -q "# === Bootstrap Environment Variables ===" "${file}" 2>/dev/null; then
-        echo -e "\n# === Bootstrap Environment Variables ===" >> "${file}"
-        echo "${content}" >> "${file}"
-        echo "# === End Bootstrap Environment Variables ===" >> "${file}"
-        log "INFO" "Updated ${file} with environment variables"
-    else
-        log "INFO" "Environment variables already present in ${file}"
-    fi
-}
-
-# Function to read environment variables from YAML
-read_env_vars() {
-    local yaml_file="config/bootstrap.yaml"
-    if [ ! -f "${yaml_file}" ]; then
-        log "ERROR" "Bootstrap config file not found: ${yaml_file}"
-        return 1
-    }
-    
-    # Read environment variables using yq
-    local env_vars
-    env_vars=$(sudo -u "${GITHUB_SSH_USER}" bash -c "eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && yq eval '.bootstrap.env_vars[]' \"${yaml_file}\"") || {
-        log "ERROR" "Failed to read environment variables from ${yaml_file}"
-        return 1
-    }
-    
-    echo "${env_vars}"
-}
-
-# Get environment variables
-log "INFO" "Reading environment variables from config..."
-ENV_VARS=$(read_env_vars)
-if [ -z "${ENV_VARS}" ]; then
-    log "WARN" "No environment variables found in config"
-else
-    # Create environment variable content for rc files
-    RC_CONTENT=""
-    while IFS= read -r var; do
-        if [ -n "${var}" ]; then
-            # Export the variable in current session
-            export "${var}"
-            # Add to rc content
-            RC_CONTENT="${RC_CONTENT}export ${var}\n"
-            log "INFO" "Set environment variable: ${var%%=*}"
-        fi
-    done <<< "${ENV_VARS}"
-    
-    # Update shell rc files for GITHUB_SSH_USER
-    if [ -n "${RC_CONTENT}" ]; then
-        # Update .bashrc
-        write_to_rc_file "/home/${GITHUB_SSH_USER}/.bashrc" "${RC_CONTENT}"
-        
-        # Update .zshrc
-        write_to_rc_file "/home/${GITHUB_SSH_USER}/.zshrc" "${RC_CONTENT}"
-        
-        # Set ownership
-        chown "${GITHUB_SSH_USER}:${GITHUB_SSH_USER}" "/home/${GITHUB_SSH_USER}/.bashrc" "/home/${GITHUB_SSH_USER}/.zshrc"
-        
-        log "INFO" "Environment variables configured in shell startup files"
-    fi
-fi
-
-log "INFO" "=== Environment Variables Setup Completed ==="
+done < <(grep -A 100 "env_vars:" config/bootstrap.yaml | grep -B 100 "^[^ ]" | grep "^  [A-Za-z]")
 
 ############################################################
 # Global Variable Declarations
@@ -542,101 +580,6 @@ log "INFO" "  Repository: /home/linuxbrew/.linuxbrew/Homebrew"
 
 log "INFO" "=== Homebrew Installation Completed ==="
 
-# After Homebrew installation, update PATH to include Homebrew binary directory
-export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
-
-############################################################
-# Helper Functions
-############################################################
-# Function to log messages with timestamp and level
-log() {
-    local level="$1"
-    local message="$2"
-    local timestamp
-    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "[${timestamp}] [${level}] ${message}"
-}
-
-# Function for debug logging
-debug_log() {
-    local message="$1"
-    if [[ "${DEBUG}" == "true" ]]; then
-        log "DEBUG" "${message}"
-    fi
-}
-
-# Function to mark a step as complete or failed
-mark_step() {
-    local step="$1"
-    local status="${2:-DONE}"
-    log "INFO" "=== ${step} ${status} ==="
-}
-
-# Function to read YAML values using yq
-read_yaml() {
-    local file="$1"
-    local path="$2"
-    
-    # Redirect all debug output to stderr
-    {
-        log "INFO" "Reading YAML from $file at path $path"
-        log "INFO" "File exists check: [ -f \"$file\" ]"
-        [ -f "$file" ] && echo "File exists" || echo "File does not exist"
-        log "INFO" "File permissions:"
-        ls -l "$file" 2>/dev/null || echo "Cannot access file"
-    } 1>&2
-    
-    # Get the value using SUDO_USER
-    local value=""
-    value=$(sudo -u "${SUDO_USER}" bash -c "eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" || true; yq eval \"$path\" \"$file\" 2>/dev/null" 2>/dev/null) || true
-    
-    if [[ -z "$value" ]]; then
-        log "WARN" "Failed to read value from $file at path $path, returning empty string" 1>&2
-        echo ""
-        return 0
-    fi
-    
-    # Log the value and return it
-    {
-        log "INFO" "Raw value - may include newlines"
-        echo "---BEGIN VALUE---"
-        echo "$value"
-        echo "---END VALUE---"
-    } 1>&2
-    
-    echo "$value"
-}
-
-# Function to read secrets using yq with GITHUB_SSH_USER context
-read_secrets() {
-    local file="$1"
-    local path="$2"
-    
-    # Redirect all debug output to stderr
-    {
-        log "INFO" "Reading secrets from $file at path $path"
-        log "INFO" "File exists check: [ -f \"$file\" ]"
-        [ -f "$file" ] && echo "File exists" || echo "File does not exist"
-        log "INFO" "File permissions:"
-        ls -l "$file" 2>/dev/null || echo "Cannot access file"
-    } 1>&2
-    
-    # Get the value using GITHUB_SSH_USER
-    local value=""
-    value=$(sudo -u "${GITHUB_SSH_USER}" bash -c "eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" || true; yq eval \"$path\" \"$file\" 2>/dev/null" 2>/dev/null) || true
-    
-    if [[ -z "$value" ]]; then
-        log "WARN" "Failed to read secret from $file at path $path, returning empty string" 1>&2
-        echo ""
-        return 0
-    fi
-    
-    # Log that we found a secret
-    log "INFO" "Secret value found - not displaying contents" 1>&2
-    
-    echo "$value"
-}
-
 # yq installation
 log "INFO" "=== Installing yq ==="
 
@@ -700,7 +643,9 @@ log "INFO" "yq installation and verification completed successfully"
 
 log "INFO" "=== yq Installation Completed ==="
 
-# GitHub user setup
+############################################################
+# GitHub User Configuration
+############################################################
 log "INFO" "=== Reading GitHub Configuration ==="
 
 # Verify config file exists
@@ -709,23 +654,15 @@ if [ ! -f "config/runner.yaml" ]; then
     exit 1
 fi
 
-# Critical: First YAML read to get GITHUB_SSH_USER
+# Read GitHub configuration using yq
 log "INFO" "Reading GitHub configuration..."
-GITHUB_OWNER=$(read_yaml "config/runner.yaml" ".runner.github.owner")
-if [[ -z "${GITHUB_OWNER}" ]]; then
-    log "ERROR" "Failed to read GitHub owner from config"
-    exit 1
-fi
-
-REPOSITORY_NAME=$(read_yaml "config/runner.yaml" ".runner.github.repo_name")
-if [[ -z "${REPOSITORY_NAME}" ]]; then
-    log "ERROR" "Failed to read repository name from config"
-    exit 1
-fi
-
-GITHUB_SSH_USER=$(read_yaml "config/runner.yaml" ".runner.github.ssh.user")
-if [[ -z "${GITHUB_SSH_USER}" ]]; then
+GITHUB_SSH_USER=$(sudo -u "${SUDO_USER}" bash -c 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && yq eval ".runner.github.ssh.user" config/runner.yaml') || {
     log "ERROR" "Failed to read GITHUB_SSH_USER from config"
+    exit 1
+}
+
+if [[ -z "${GITHUB_SSH_USER}" ]]; then
+    log "ERROR" "GITHUB_SSH_USER is empty in config"
     exit 1
 fi
 
@@ -737,15 +674,71 @@ fi
 
 # Log configuration details
 log "INFO" "Successfully read GitHub configuration:"
-log "INFO" "  Owner: ${GITHUB_OWNER}"
-log "INFO" "  Repository: ${REPOSITORY_NAME}"
 log "INFO" "  SSH User: ${GITHUB_SSH_USER}"
 log "INFO" "  User Home: $(eval echo ~${GITHUB_SSH_USER})"
 log "INFO" "  User Groups: $(groups ${GITHUB_SSH_USER})"
 
 log "INFO" "=== GitHub User Setup Completed ==="
 
-# Python setup
+############################################################
+# Environment Variables Setup
+############################################################
+log "INFO" "=== Setting up Environment Variables ==="
+
+# Get environment variables using yq
+log "INFO" "Reading environment variables from config..."
+ENV_VARS=$(sudo -u "${SUDO_USER}" bash -c '
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    yq eval ".bootstrap.env_vars" config/bootstrap.yaml | while IFS=": " read -r key value; do
+        if [[ -n "$key" && "$key" != *":"* ]]; then
+            # Remove leading whitespace and quotes
+            key="${key#"${key%%[! ]*}"}"
+            value="${value#"${value%%[! ]*}"}"
+            value="${value#\"}"
+            value="${value%\"}"
+            echo "$key=$value"
+        fi
+    done
+') || {
+    log "ERROR" "Failed to read environment variables from config"
+    exit 1
+}
+
+if [ -z "${ENV_VARS}" ]; then
+    log "WARN" "No environment variables found in config"
+else
+    # Create environment variable content for rc files
+    RC_CONTENT=""
+    while IFS= read -r var; do
+        if [ -n "${var}" ]; then
+            # Export the variable in current session
+            export "${var}"
+            # Add to rc content
+            RC_CONTENT="${RC_CONTENT}export ${var}\n"
+            log "INFO" "Set environment variable: ${var%%=*}"
+        fi
+    done <<< "${ENV_VARS}"
+    
+    # Update shell rc files for GITHUB_SSH_USER
+    if [ -n "${RC_CONTENT}" ]; then
+        # Update .bashrc
+        write_to_rc_file "/home/${GITHUB_SSH_USER}/.bashrc" "${RC_CONTENT}"
+        
+        # Update .zshrc
+        write_to_rc_file "/home/${GITHUB_SSH_USER}/.zshrc" "${RC_CONTENT}"
+        
+        # Set ownership
+        chown "${GITHUB_SSH_USER}:${GITHUB_SSH_USER}" "/home/${GITHUB_SSH_USER}/.bashrc" "/home/${GITHUB_SSH_USER}/.zshrc"
+        
+        log "INFO" "Environment variables configured in shell startup files"
+    fi
+fi
+
+log "INFO" "=== Environment Variables Setup Completed ==="
+
+############################################################
+# Python Setup
+############################################################
 log "INFO" "=== Starting Python Setup ==="
 
 # Install pyenv

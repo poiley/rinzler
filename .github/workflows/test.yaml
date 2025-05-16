@@ -1,0 +1,88 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+      - test
+    paths:
+      - 'terraform/**'
+      - 'config/**'
+      - '.github/workflows/test.yaml'
+  pull_request:
+    branches:
+      - master
+      - test
+    paths:
+      - 'terraform/**'
+      - 'config/**'
+      - '.github/workflows/test.yaml'
+
+env:
+  ENVIRONMENT: test
+  TF_IN_AUTOMATION: true
+
+jobs:
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+    environment: test
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    
+    defaults:
+      run:
+        working-directory: terraform
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Install yq
+        run: |
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+
+      - name: Generate tfvars
+        run: ./scripts/generate-tfvars.sh
+        env:
+          ENVIRONMENT: test
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/test'
+        run: terraform apply -auto-approve tfplan
+
+      - name: Run Integration Tests
+        if: github.ref == 'refs/heads/test'
+        run: |
+          # Add your integration test commands here
+          echo "Running integration tests..."
+
+      - name: Terraform Destroy
+        if: github.ref == 'refs/heads/test'
+        run: terraform destroy -auto-approve 
