@@ -347,11 +347,11 @@ read_env_vars() {
     echo "${env_vars}"
 }
 
-# Get environment variables
+# Get environment variables (will skip if GITHUB_SSH_USER not set)
 log "INFO" "Reading environment variables from config..."
 ENV_VARS=$(read_env_vars)
 if [ -z "${ENV_VARS}" ]; then
-    log "WARN" "No environment variables found in config"
+    log "WARN" "No environment variables found in config or setup skipped"
 else
     # Create environment variable content for rc files
     RC_CONTENT=""
@@ -365,8 +365,8 @@ else
         fi
     done <<< "${ENV_VARS}"
     
-    # Update shell rc files for GITHUB_SSH_USER
-    if [ -n "${RC_CONTENT}" ]; then
+    # Update shell rc files for GITHUB_SSH_USER (only if GITHUB_SSH_USER is set)
+    if [ -n "${RC_CONTENT}" ] && [ -n "${GITHUB_SSH_USER:-}" ]; then
         # Update .bashrc
         write_to_rc_file "/home/${GITHUB_SSH_USER}/.bashrc" "${RC_CONTENT}"
         
@@ -712,7 +712,7 @@ log "INFO" "yq installation and verification completed successfully"
 
 log "INFO" "=== yq Installation Completed ==="
 
-# GitHub user setup
+# GitHub user setup - MOVED HERE to be available for environment variables
 log "INFO" "=== Reading GitHub Configuration ==="
 
 # Verify config file exists
