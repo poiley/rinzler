@@ -321,14 +321,26 @@ write_to_rc_file() {
 read_env_vars() {
     local yaml_file="config/bootstrap.yaml"
     if [ ! -f "${yaml_file}" ]; then
-        log "ERROR" "Bootstrap config file not found: ${yaml_file}"
+        log "WARN" "Bootstrap config file not found: ${yaml_file}, skipping environment variable setup"
         return 1
-    }
+    fi
+    
+    # Check if yq is available and GITHUB_SSH_USER is set
+    if [ -z "${GITHUB_SSH_USER:-}" ]; then
+        log "WARN" "GITHUB_SSH_USER not set yet, skipping environment variable setup for now"
+        return 1
+    fi
+    
+    # Check if yq is available
+    if ! sudo -u "${GITHUB_SSH_USER}" bash -c "eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" 2>/dev/null && command -v yq >/dev/null 2>&1"; then
+        log "WARN" "yq not available yet, skipping environment variable setup for now"
+        return 1
+    fi
     
     # Read environment variables using yq
     local env_vars
-    env_vars=$(sudo -u "${GITHUB_SSH_USER}" bash -c "eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && yq eval '.bootstrap.env_vars[]' \"${yaml_file}\"") || {
-        log "ERROR" "Failed to read environment variables from ${yaml_file}"
+    env_vars=$(sudo -u "${GITHUB_SSH_USER}" bash -c "eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && yq eval '.bootstrap.env_vars[]' \"${yaml_file}\"" 2>/dev/null) || {
+        log "WARN" "Failed to read environment variables from ${yaml_file}, will retry later"
         return 1
     }
     
@@ -744,6 +756,44 @@ log "INFO" "  User Home: $(eval echo ~${GITHUB_SSH_USER})"
 log "INFO" "  User Groups: $(groups ${GITHUB_SSH_USER})"
 
 log "INFO" "=== GitHub User Setup Completed ==="
+
+# Environment Variables Setup (Retry with yq available)
+log "INFO" "=== Setting up Environment Variables (Post-yq) ==="
+
+# Now that yq and GITHUB_SSH_USER are available, retry environment variable setup
+log "INFO" "Retrying environment variables setup with yq available..."
+ENV_VARS=$(read_env_vars)
+if [ -z "${ENV_VARS}" ]; then
+    log "WARN" "No environment variables found in config or setup skipped"
+else
+    # Create environment variable content for rc files
+    RC_CONTENT=""
+    while IFS= read -r var; do
+        if [ -n "${var}" ]; then
+            # Export the variable in current session
+            export "${var}"
+            # Add to rc content
+            RC_CONTENT="${RC_CONTENT}export ${var}\n"
+            log "INFO" "Set environment variable: ${var%%=*}"
+        fi
+    done <<< "${ENV_VARS}"
+    
+    # Update shell rc files for GITHUB_SSH_USER
+    if [ -n "${RC_CONTENT}" ]; then
+        # Update .bashrc
+        write_to_rc_file "/home/${GITHUB_SSH_USER}/.bashrc" "${RC_CONTENT}"
+        
+        # Update .zshrc
+        write_to_rc_file "/home/${GITHUB_SSH_USER}/.zshrc" "${RC_CONTENT}"
+        
+        # Set ownership
+        chown "${GITHUB_SSH_USER}:${GITHUB_SSH_USER}" "/home/${GITHUB_SSH_USER}/.bashrc" "/home/${GITHUB_SSH_USER}/.zshrc"
+        
+        log "INFO" "Environment variables configured in shell startup files"
+    fi
+fi
+
+log "INFO" "=== Environment Variables Setup (Post-yq) Completed ==="
 
 # Python setup
 log "INFO" "=== Starting Python Setup ==="
