@@ -49,13 +49,35 @@ bootstrap:
     - liblzma-dev
     - unzip
     - gcc
+    - libncurses5-dev
+    - libncursesw5-dev
+    - libffi-dev
+    - libbz2-dev
   env_vars:
+    # System Configuration
     TZ: "America/Los_Angeles"
     PGID: "1000"
     PUID: "1000"
+    
+    # Plex Configuration
     PLEX_MEDIA_SERVER_USER: "ben.poile"
     
+    # Pi-hole Configuration
+    PIHOLE_PASSWORD: "password"
+    
+    # Basic Auth for *arr services (base64 encoded admin:password)
+    BASIC_AUTH_HEADER: "YWRtaW46cGFzc3dvcmQ="
+    
+    # WireGuard VPN Configuration
+    WIREGUARD_PRIVATE_KEY: "CHANGE_ME_GENERATE_PRIVATE_KEY"
+    WIREGUARD_ADDRESSES: "10.13.13.2/24"
+    
+    # Docker Configuration
+    DOCKER_BUILDKIT: "1"
+    COMPOSE_DOCKER_CLI_BUILD: "1"
+    
+    # Development Environment
+    ENVIRONMENT: "dev"
+    
   dockge_stacks_dir: "/home/poile/rinzler/compose"
-  zfs_pool: "rinzler"
-  wireguard:
-    addresses: "10.0.0.1/24"  # Example WireGuard network 
+  zfs_pool: "storage"

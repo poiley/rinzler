@@ -758,6 +758,26 @@ fi
 
 log "INFO" "=== Environment Variables Setup (Post-yq) Completed ==="
 
+# Read additional configuration from bootstrap.yaml
+log "INFO" "=== Reading Additional Bootstrap Configuration ==="
+
+# Read dockge_stacks_dir from config
+DOCKGE_STACKS_DIR=""
+if [ -f "config/bootstrap.yaml" ]; then
+    DOCKGE_STACKS_DIR=$(read_yaml "config/bootstrap.yaml" ".bootstrap.dockge_stacks_dir")
+    if [ -n "${DOCKGE_STACKS_DIR}" ] && [ "${DOCKGE_STACKS_DIR}" != "null" ]; then
+        log "INFO" "Using dockge_stacks_dir from config: ${DOCKGE_STACKS_DIR}"
+        # Export for use in docker-compose files
+        export DOCKGE_STACKS_DIR="${DOCKGE_STACKS_DIR}"
+    else
+        log "INFO" "No dockge_stacks_dir found in config, using default"
+    fi
+else
+    log "WARN" "Bootstrap config file not found, using default paths"
+fi
+
+log "INFO" "=== Additional Bootstrap Configuration Completed ==="
+
 # Python setup
 log "INFO" "=== Starting Python Setup ==="
 
@@ -1389,18 +1409,31 @@ log "INFO" "=== Starting Docker Compose Validation ==="
 declare -a VALID_COMPOSE_FILES=()
 declare -a INVALID_COMPOSE_FILES=()
 
-# Find all docker-compose files
-COMPOSE_DIR="compose"
+# Determine the repository root directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+COMPOSE_DIR="${REPO_ROOT}/compose"
+
+log "INFO" "Repository root: ${REPO_ROOT}"
+log "INFO" "Compose directory: ${COMPOSE_DIR}"
+
+# Verify compose directory exists
 if [ ! -d "${COMPOSE_DIR}" ]; then
     log "WARN" "Compose directory '${COMPOSE_DIR}' not found, skipping Docker Compose setup"
     exit 0
 fi
 
+# List available compose files for debugging
+log "INFO" "Available compose files:"
+find "${COMPOSE_DIR}" -type f -name "docker-compose*.y*ml" | while read -r file; do
+    log "INFO" "  Found: $(basename "${file}")"
+done
+
 # Validate each compose file
 log "INFO" "Validating Docker Compose files..."
 while IFS= read -r -d '' compose_file; do
     log "INFO" "Checking ${compose_file}..."
-    if docker-compose -f "${compose_file}" config >/dev/null 2>&1; then
+    if sudo -u "${GITHUB_SSH_USER}" -E docker-compose -f "${compose_file}" config >/dev/null 2>&1; then
         VALID_COMPOSE_FILES+=("${compose_file}")
         log "INFO" "  ✓ Valid: $(basename "${compose_file}")"
     else
@@ -1504,6 +1537,47 @@ log "INFO" "All required directories created and configured"
 # Docker Compose Service Launch
 log "INFO" "=== Starting Docker Compose Services ==="
 
+# Ensure environment variables are available for Docker Compose
+log "INFO" "Setting up environment variables for Docker Compose..."
+
+# First, export the basic required variables with defaults
+export PUID="${PUID:-1000}"
+export PGID="${PGID:-1000}"
+export TZ="${TZ:-America/Los_Angeles}"
+export ENVIRONMENT="${ENVIRONMENT:-dev}"
+
+log "INFO" "Exported default variables:"
+log "INFO" "  PUID=${PUID}"
+log "INFO" "  PGID=${PGID}"
+log "INFO" "  TZ=${TZ}"
+log "INFO" "  ENVIRONMENT=${ENVIRONMENT}"
+
+# Then export variables from ENV_VARS if available
+if [ -n "${ENV_VARS}" ]; then
+    log "INFO" "Exporting additional variables from bootstrap config..."
+    while IFS= read -r var; do
+        if [ -n "${var}" ] && [[ "${var}" == *"="* ]]; then
+            export "${var}"
+            log "INFO" "Exported: ${var%%=*}=${var#*=}"
+        fi
+    done <<< "${ENV_VARS}"
+else
+    log "WARN" "No additional environment variables found in ENV_VARS"
+fi
+
+# Export additional variables that might be needed
+export DOCKGE_STACKS_DIR="${DOCKGE_STACKS_DIR:-/home/poile/rinzler/compose}"
+export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
+export COMPOSE_DOCKER_CLI_BUILD="${COMPOSE_DOCKER_CLI_BUILD:-1}"
+
+# Log all exported environment variables for debugging
+log "INFO" "All environment variables for Docker Compose:"
+env | grep -E "^(PUID|PGID|TZ|ENVIRONMENT|PLEX_|PIHOLE_|BASIC_AUTH_|WIREGUARD_|DOCKER_|COMPOSE_|DOCKGE_)" | while read -r var; do
+    log "INFO" "  ${var}"
+done
+
+log "INFO" "Environment variables ready for Docker Compose"
+
 # Define service launch order based on dependencies
 declare -a SERVICE_ORDER=(
     "docker-compose.traefik.yaml"        # Core networking
@@ -1527,45 +1601,128 @@ declare -a SERVICE_ORDER=(
 start_compose_service() {
     local compose_file="$1"
     local service_name=$(basename "${compose_file}" .yaml)
+    local full_path="${COMPOSE_DIR}/${compose_file}"
     
     log "INFO" "Starting ${service_name}..."
-    if [ -f "${COMPOSE_DIR}/${compose_file}" ]; then
-        cd "${COMPOSE_DIR}" && \
-        sudo -u "${GITHUB_SSH_USER}" docker-compose -f "${compose_file}" up -d || {
-            log "ERROR" "Failed to start ${service_name}"
+    log "INFO" "  Compose file: ${compose_file}"
+    log "INFO" "  Full path: ${full_path}"
+    log "INFO" "  Current directory: $(pwd)"
+    
+    # Check if file exists with detailed debugging
+    if [ -f "${full_path}" ]; then
+        log "INFO" "  ✓ File exists: ${full_path}"
+        log "INFO" "  File permissions: $(ls -la "${full_path}")"
+        
+        # Change to compose directory and run docker-compose
+        if cd "${COMPOSE_DIR}"; then
+            log "INFO" "  ✓ Changed to compose directory: ${COMPOSE_DIR}"
+            log "INFO" "  Current directory after cd: $(pwd)"
+            
+            # Run docker-compose with detailed error output
+            if sudo -u "${GITHUB_SSH_USER}" -E docker-compose -f "${compose_file}" up -d; then
+                log "INFO" "Successfully started ${service_name}"
+                # Wait for containers to be healthy
+                sleep 5
+                return 0
+            else
+                local exit_code=$?
+                log "ERROR" "Failed to start ${service_name} (exit code: ${exit_code})"
+                log "ERROR" "Docker-compose command: docker-compose -f ${compose_file} up -d"
+                log "ERROR" "Working directory: $(pwd)"
+                return 1
+            fi
+        else
+            log "ERROR" "Failed to change to compose directory: ${COMPOSE_DIR}"
             return 1
-        }
-        log "INFO" "Successfully started ${service_name}"
-        # Wait for containers to be healthy
-        sleep 5
+        fi
     else
-        log "WARN" "Compose file not found: ${compose_file}"
+        log "WARN" "Compose file not found: ${full_path}"
+        log "WARN" "  Directory contents:"
+        ls -la "${COMPOSE_DIR}/" | head -10 | while read -r line; do
+            log "WARN" "    ${line}"
+        done
         return 1
     fi
 }
 
 # Start services in order
 log "INFO" "Launching services in priority order..."
-for compose_file in "${SERVICE_ORDER[@]}"; do
-    start_compose_service "${compose_file}"
-done
 
-# Verify all services are running
-log "INFO" "Verifying service health..."
-cd "${COMPOSE_DIR}"
+# Track service launch results
+SERVICES_STARTED=0
+SERVICES_FAILED=0
+FAILED_SERVICES=()
+
 for compose_file in "${SERVICE_ORDER[@]}"; do
-    if [ -f "${compose_file}" ]; then
-        service_name=$(basename "${compose_file}" .yaml)
-        log "INFO" "Checking ${service_name}..."
-        sudo -u "${GITHUB_SSH_USER}" docker-compose -f "${compose_file}" ps --format json | grep -q "running" || {
-            log "WARN" "${service_name} may not be running properly"
-        }
+    if start_compose_service "${compose_file}"; then
+        SERVICES_STARTED=$((SERVICES_STARTED + 1))
+        log "INFO" "✓ Successfully started: $(basename "${compose_file}" .yaml)"
+    else
+        SERVICES_FAILED=$((SERVICES_FAILED + 1))
+        FAILED_SERVICES+=("$(basename "${compose_file}" .yaml)")
+        log "ERROR" "✗ Failed to start: $(basename "${compose_file}" .yaml)"
     fi
 done
 
+# Report launch results
+log "INFO" "Service launch summary:"
+log "INFO" "  Successfully started: ${SERVICES_STARTED}"
+log "INFO" "  Failed to start: ${SERVICES_FAILED}"
+
+if [ ${SERVICES_FAILED} -gt 0 ]; then
+    log "WARN" "Failed services: ${FAILED_SERVICES[*]}"
+fi
+
+# Verify all services are running
+log "INFO" "Verifying service health..."
+
+# Ensure we can access the compose directory
+if [ ! -d "${COMPOSE_DIR}" ]; then
+    log "ERROR" "Compose directory not found: ${COMPOSE_DIR}"
+    log "ERROR" "Cannot verify service health"
+else
+    log "INFO" "Checking services in: ${COMPOSE_DIR}"
+    
+    # Change to compose directory with error handling
+    if cd "${COMPOSE_DIR}"; then
+        log "INFO" "Successfully changed to compose directory"
+        
+        for compose_file in "${SERVICE_ORDER[@]}"; do
+            if [ -f "${compose_file}" ]; then
+                service_name=$(basename "${compose_file}" .yaml)
+                log "INFO" "Checking ${service_name}..."
+                
+                # Check if service is running with better error handling
+                if sudo -u "${GITHUB_SSH_USER}" -E docker-compose -f "${compose_file}" ps --format json 2>/dev/null | grep -q "running"; then
+                    log "INFO" "  ✓ ${service_name} is running"
+                else
+                    log "WARN" "  ✗ ${service_name} may not be running properly"
+                fi
+            else
+                log "WARN" "Compose file not found for verification: ${compose_file}"
+            fi
+        done
+    else
+        log "ERROR" "Failed to change to compose directory: ${COMPOSE_DIR}"
+        log "ERROR" "Skipping service health verification"
+    fi
+fi
+
 # Final status check
-log "INFO" "All services launched. Current status:"
-sudo -u "${GITHUB_SSH_USER}" docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+log "INFO" "Final Docker container status:"
+if sudo -u "${GITHUB_SSH_USER}" -E docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null; then
+    # Count running containers
+    RUNNING_CONTAINERS=$(sudo -u "${GITHUB_SSH_USER}" -E docker ps --format "{{.Names}}" 2>/dev/null | wc -l)
+    log "INFO" "Total running containers: ${RUNNING_CONTAINERS}"
+    
+    if [ "${RUNNING_CONTAINERS}" -gt 0 ]; then
+        log "INFO" "Docker Compose services deployment completed with ${RUNNING_CONTAINERS} running containers"
+    else
+        log "WARN" "No Docker containers are currently running"
+    fi
+else
+    log "ERROR" "Failed to get Docker container status"
+fi
 
 log "INFO" "=== Docker Compose Services Started ==="
 
