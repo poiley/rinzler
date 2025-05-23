@@ -665,6 +665,61 @@ log "INFO" "  User Groups: $(groups ${GITHUB_SSH_USER})"
 
 log "INFO" "=== GitHub User Setup Completed ==="
 
+# Function to safely write to shell rc files
+write_to_rc_file() {
+    local file="$1"
+    local content="$2"
+    local backup="${file}.bak"
+    
+    # Create backup if file exists
+    if [ -f "${file}" ]; then
+        cp "${file}" "${backup}"
+    fi
+    
+    # Append content if not already present
+    if ! grep -q "# === Bootstrap Environment Variables ===" "${file}" 2>/dev/null; then
+        echo -e "\n# === Bootstrap Environment Variables ===" >> "${file}"
+        echo -e "${content}" >> "${file}"
+        echo "# === End Bootstrap Environment Variables ===" >> "${file}"
+        log "INFO" "Updated ${file} with environment variables"
+    else
+        log "INFO" "Environment variables already present in ${file}"
+    fi
+}
+
+# Function to read environment variables from YAML (key-value format)
+read_env_vars() {
+    local yaml_file="config/bootstrap.yaml"
+    if [ ! -f "${yaml_file}" ]; then
+        log "WARN" "Bootstrap config file not found: ${yaml_file}, skipping environment variable setup"
+        return 1
+    fi
+    
+    # Check if yq is available and GITHUB_SSH_USER is set
+    if [ -z "${GITHUB_SSH_USER:-}" ]; then
+        log "WARN" "GITHUB_SSH_USER not set yet, skipping environment variable setup for now"
+        return 1
+    fi
+    
+    # Check if yq is available
+    if ! sudo -u "${GITHUB_SSH_USER}" bash -c "eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" 2>/dev/null && command -v yq >/dev/null 2>&1"; then
+        log "WARN" "yq not available yet, skipping environment variable setup for now"
+        return 1
+    fi
+    
+    # Read environment variables using yq (key-value format)
+    local env_vars=""
+    env_vars=$(sudo -u "${GITHUB_SSH_USER}" bash -c "
+        eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && 
+        yq eval '.bootstrap.env_vars | to_entries | .[] | .key + \"=\" + .value' \"${yaml_file}\"
+    " 2>/dev/null) || {
+        log "WARN" "Failed to read environment variables from ${yaml_file}, will retry later"
+        return 1
+    }
+    
+    echo "${env_vars}"
+}
+
 # Environment Variables Setup (Retry with yq available)
 log "INFO" "=== Setting up Environment Variables (Post-yq) ==="
 
