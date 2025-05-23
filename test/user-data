@@ -1,0 +1,62 @@
+#cloud-config
+
+# System configuration
+hostname: ubuntu-vm
+timezone: UTC
+
+# User configuration
+users:
+  - name: poile
+    gecos: User Account
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: $6$iIbAelEw1iTO/QQx$0kyDMSKjSPIx0oFJS/o8CmQJZEJPJAnQ6B6MoUZNOuADT2DhMdmXncXPThfv7vFvFgE9Wber4EbfE2KAaA11u0
+    ssh_authorized_keys: []
+    groups: [sudo, adm, dialout, cdrom, floppy, audio, dip, video, plugdev, netdev]
+
+# SSH configuration
+ssh_pwauth: true
+disable_root: false
+
+# Auto-login configuration
+write_files:
+  - path: /etc/systemd/system/getty@tty1.service.d/autologin.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=-/sbin/agetty --autologin poile --noclear %I $TERM
+    permissions: '0644'
+  - path: /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=-/sbin/agetty --autologin poile --keep-baud 115200,38400,9600 %I $TERM
+    permissions: '0644'
+
+# Package updates and installations
+package_update: true
+package_upgrade: true
+packages:
+  - openssh-server
+  - curl
+  - wget
+  - vim
+  - htop
+  - git
+
+# Enable services and run one-time setup
+runcmd:
+  - systemctl enable ssh
+  - systemctl start ssh
+  - systemctl daemon-reload
+  - systemctl enable getty@tty1.service
+  - systemctl enable serial-getty@ttyS0.service
+  # Download and execute one-time startup script
+  - wget https://raw.githubusercontent.com/poiley/rinzler/test/terraform/scripts/init.sh -O /tmp/init.sh
+  - chmod +x /tmp/init.sh
+  - bash /tmp/init.sh
+  - rm /tmp/init.sh  # Clean up the script after execution
+
+# Final message
+final_message: "Ubuntu VM setup complete! User 'poile' is ready with auto-login enabled."
