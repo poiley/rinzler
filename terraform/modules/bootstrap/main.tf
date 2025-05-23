@@ -227,35 +227,7 @@ resource "null_resource" "bootstrap" {
   }
 
   provisioner "file" {
-    content = templatefile(abspath("${path.module}/../../scripts/bootstrap-init.sh"), {
-      dockge_stacks_dir     = tostring(var.dockge_stacks_dir)
-      wireguard_private_key = tostring(var.wireguard_private_key)
-      wireguard_addresses   = tostring(var.wireguard_addresses)
-      pihole_password       = tostring(var.pihole_password)
-      pihole_api_token      = tostring(var.pihole_api_token)
-      pihole_url            = tostring(var.pihole_url)
-      github_token          = tostring(var.github_token)
-      github_owner          = tostring(var.github_owner)
-      repository_name       = tostring(var.repository_name)
-      ssh_user              = tostring(var.ssh_user)
-      server_host           = tostring(var.server_host)
-      ssh_private_key       = tostring(var.ssh_private_key)
-      runner_token          = tostring(var.runner_token)
-      unifi_controller_url  = tostring(var.unifi_controller_url)
-      unifi_username        = tostring(var.unifi_username)
-      unifi_password        = tostring(var.unifi_password)
-      unifi_api_key         = tostring(var.unifi_api_key)
-      unifi_site            = tostring(var.unifi_site)
-      basic_auth_header     = tostring(var.basic_auth_header)
-      timezone              = tostring(var.timezone)
-      puid                  = tostring(var.puid)
-      pgid                  = tostring(var.pgid)
-      repo_branch           = tostring(var.repo_branch)
-      repo_url              = tostring(var.repo_url)
-      repo_path             = tostring(var.repo_path)
-      zfs_pool              = tostring(var.zfs_pool)
-      zfs_dataset           = tostring(var.zfs_dataset)
-    })
+    source      = abspath("${path.module}/../../scripts/bootstrap-init.sh")
     destination = "/tmp/bootstrap-init.sh"
   }
 

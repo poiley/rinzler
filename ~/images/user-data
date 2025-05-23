@@ -1,0 +1,130 @@
+#cloud-config
+
+# System configuration
+hostname: ubuntu-vm
+timezone: UTC
+
+# User configuration
+users:
+  - name: poile
+    gecos: User Account
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: $6$iIbAelEw1iTO/QQx$0kyDMSKjSPIx0oFJS/o8CmQJZEJPJAnQ6B6MoUZNOuADT2DhMdmXncXPThfv7vFvFgE9Wber4EbfE2KAaA11u0
+    ssh_authorized_keys: []
+    groups: [sudo, adm, dialout, cdrom, floppy, audio, dip, video, plugdev, netdev]
+
+# SSH configuration
+ssh_pwauth: true
+disable_root: false
+
+# Auto-login configuration
+write_files:
+  - path: /etc/systemd/system/getty@tty1.service.d/autologin.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=-/sbin/agetty --autologin poile --noclear %I $TERM
+    permissions: '0644'
+  - path: /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=-/sbin/agetty --autologin poile --keep-baud 115200,38400,9600 %I $TERM
+    permissions: '0644'
+  - path: /etc/systemd/network/10-ens3.network
+    content: |
+      [Match]
+      Name=ens3
+      
+      [Network]
+      DHCP=yes
+      DNS=8.8.8.8
+      DNS=8.8.4.4
+    permissions: '0644'
+  - path: /etc/environment
+    content: |
+      ENVIRONMENT="dev"
+    permissions: '0644'
+  - path: /etc/resolv.conf.static
+    content: |
+      nameserver 8.8.8.8
+      nameserver 8.8.4.4
+      nameserver 1.1.1.1
+    permissions: '0644'
+  - path: /home/poile/.bashrc_env
+    content: |
+      # Development environment configuration
+      export ENVIRONMENT="dev"
+    permissions: '0644'
+    owner: poile:poile
+  - path: /var/log/cloud-init-custom.log
+    content: |
+      === Cloud-Init Custom Script Log ===
+      Started at: $(date)
+    permissions: '0644'
+
+# Package updates and installations
+package_update: false
+package_upgrade: false
+packages:
+  - openssh-server
+  - curl
+  - wget
+  - vim
+  - htop
+  - git
+
+# Enable services and run one-time setup
+runcmd:
+  - [ sh, -c, 'echo "=== CLOUD-INIT RUNCMD STARTED ===" >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'date >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'echo "Creating systemd override directories..." >> /var/log/cloud-init-custom.log' ]
+  - [ mkdir, -p, /etc/systemd/system/getty@tty1.service.d ]
+  - [ mkdir, -p, /etc/systemd/system/serial-getty@ttyS0.service.d ]
+  - [ sh, -c, 'echo "Fixing DNS resolution permanently..." >> /var/log/cloud-init-custom.log' ]
+  - [ cp, /etc/resolv.conf.static, /etc/resolv.conf ]
+  - [ resolvectl, dns, ens3, 8.8.8.8, 8.8.4.4 ]
+  - [ sh, -c, 'echo "Enabling SSH service..." >> /var/log/cloud-init-custom.log' ]
+  - [ systemctl, enable, ssh ]
+  - [ systemctl, start, ssh ]
+  - [ sh, -c, 'echo "Reloading systemd and configuring getty services..." >> /var/log/cloud-init-custom.log' ]
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, getty@tty1.service ]
+  - [ systemctl, enable, serial-getty@ttyS0.service ]
+  - [ sh, -c, 'echo "Restarting getty services to apply auto-login..." >> /var/log/cloud-init-custom.log' ]
+  - [ systemctl, restart, getty@tty1.service ]
+  - [ systemctl, restart, serial-getty@ttyS0.service ]
+  - [ sh, -c, 'echo "Testing network connectivity..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'ping -c 3 8.8.8.8 >> /var/log/cloud-init-custom.log 2>&1 || echo "Network test failed" >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'echo "Testing DNS resolution..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'nslookup github.com >> /var/log/cloud-init-custom.log 2>&1 || echo "DNS test failed" >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'echo "Waiting for network to stabilize..." >> /var/log/cloud-init-custom.log' ]
+  - [ sleep, 5 ]
+  - [ sh, -c, 'echo "Testing direct IP connectivity..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'curl -I http://1.1.1.1 --connect-timeout 10 >> /var/log/cloud-init-custom.log 2>&1 || echo "Direct IP test failed" >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'echo "Setting environment variables..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'export ENVIRONMENT="dev" && echo "ENVIRONMENT set to: $ENVIRONMENT" >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'echo "Configuring user environment..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'echo "source /home/poile/.bashrc_env" >> /home/poile/.bashrc' ]
+  - [ chown, poile:poile, /home/poile/.bashrc ]
+  - [ chown, -R, poile:poile, /home/poile ]
+  - [ sh, -c, 'echo "Downloading startup script from test-2 branch..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'echo "Attempt 1: Using wget..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'wget --timeout=30 --tries=3 --dns-timeout=10 https://raw.githubusercontent.com/poiley/rinzler/test-2/terraform/scripts/init.sh -O /tmp/init.sh >> /var/log/cloud-init-custom.log 2>&1 || echo "wget failed, trying curl..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'if [ ! -f /tmp/init.sh ]; then echo "Attempt 2: Using curl..." >> /var/log/cloud-init-custom.log; curl --connect-timeout 30 --max-time 60 --retry 3 https://raw.githubusercontent.com/poiley/rinzler/test-2/terraform/scripts/init.sh -o /tmp/init.sh >> /var/log/cloud-init-custom.log 2>&1 || echo "curl also failed" >> /var/log/cloud-init-custom.log; fi' ]
+  - [ sh, -c, 'if [ ! -f /tmp/init.sh ]; then echo "Attempt 3: Using GitHub IP directly..." >> /var/log/cloud-init-custom.log; curl --connect-timeout 30 --max-time 60 --retry 3 --resolve "raw.githubusercontent.com:443:185.199.108.133" https://raw.githubusercontent.com/poiley/rinzler/test-2/terraform/scripts/init.sh -o /tmp/init.sh >> /var/log/cloud-init-custom.log 2>&1 || echo "IP direct access also failed" >> /var/log/cloud-init-custom.log; fi' ]
+  - [ sh, -c, 'echo "Download exit code: $?" >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'ls -la /tmp/init.sh >> /var/log/cloud-init-custom.log 2>&1 || echo "init.sh not found" >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'echo "Setting execute permissions..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'if [ -f /tmp/init.sh ]; then chmod +x /tmp/init.sh; echo "Execute permissions set" >> /var/log/cloud-init-custom.log; else echo "No init.sh file to set permissions on" >> /var/log/cloud-init-custom.log; fi' ]
+  - [ sh, -c, 'echo "Executing startup script with ENVIRONMENT=dev..." >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'if [ -f /tmp/init.sh ]; then chown poile:poile /tmp/init.sh; cd /home/poile && echo "=== STARTING INIT SCRIPT EXECUTION ===" >> /var/log/cloud-init-custom.log && sudo -u poile -H ENVIRONMENT="dev" HOME="/home/poile" bash /tmp/init.sh 2>&1 | tee -a /var/log/cloud-init-custom.log; echo "Script execution exit code: $?" >> /var/log/cloud-init-custom.log; else echo "No init.sh file to execute" >> /var/log/cloud-init-custom.log; fi' ]
+  - [ sh, -c, 'echo "Cleaning up..." >> /var/log/cloud-init-custom.log' ]
+  - [ rm, /tmp/init.sh ]
+  - [ sh, -c, 'echo "=== CLOUD-INIT RUNCMD COMPLETED ===" >> /var/log/cloud-init-custom.log' ]
+  - [ sh, -c, 'date >> /var/log/cloud-init-custom.log' ]
+
+# Final message
+final_message: "Ubuntu VM setup complete! User 'poile' is ready with auto-login enabled. Check /var/log/cloud-init-custom.log for details." 

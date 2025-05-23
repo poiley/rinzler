@@ -49,11 +49,11 @@ bootstrap:
     - liblzma-dev
     - unzip
     - gcc
-  env_vars: 
-    - TZ=America/Los_Angeles
-    - PGID=1000
-    - PUID=1000
-    - PLEX_MEDIA_SERVER_USER=ben.poile
+  env_vars:
+    TZ: "America/Los_Angeles"
+    PGID: "1000"
+    PUID: "1000"
+    PLEX_MEDIA_SERVER_USER: "ben.poile"
     
   dockge_stacks_dir: "/home/poile/rinzler/compose"
   zfs_pool: "rinzler"
