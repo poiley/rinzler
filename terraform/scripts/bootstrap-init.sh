@@ -291,6 +291,7 @@ log "INFO" "Current directory: $(pwd)" "disk_space=$(df -h . | tail -n1 | awk '{
 set -u # Exit on undefined variables
 
 ############################################################
+<<<<<<< Updated upstream
 # Environment Variables Setup
 ############################################################
 log "INFO" "=== Setting up Environment Variables ==="
@@ -383,6 +384,8 @@ fi
 log "INFO" "=== Environment Variables Setup Completed ==="
 
 ############################################################
+=======
+>>>>>>> Stashed changes
 # Global Variable Declarations
 ############################################################
 # Initialize tracking variables

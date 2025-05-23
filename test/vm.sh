@@ -205,8 +205,41 @@ check_base_image() {
     fi
 }
 
+# Kill any running QEMU processes
+kill_qemu_processes() {
+    log_step "Checking for running QEMU processes..."
+    
+    # Find QEMU processes (excluding grep itself)
+    local qemu_pids=$(pgrep -f "qemu-system-x86_64" 2>/dev/null || true)
+    
+    if [[ -n "$qemu_pids" ]]; then
+        log_warning "Found running QEMU processes, terminating..."
+        echo "$qemu_pids" | while read -r pid; do
+            if [[ -n "$pid" ]]; then
+                log_detail "Killing QEMU process: $pid"
+                kill "$pid" 2>/dev/null || true
+                # Give it a moment to terminate gracefully
+                sleep 1
+                # Force kill if still running
+                if kill -0 "$pid" 2>/dev/null; then
+                    log_detail "Force killing QEMU process: $pid"
+                    kill -9 "$pid" 2>/dev/null || true
+                fi
+            fi
+        done
+        # Wait a bit for processes to fully terminate
+        sleep 2
+        log_success "QEMU processes terminated"
+    else
+        log_detail "No running QEMU processes found"
+    fi
+}
+
 # Clean previous VM state
 cleanup_vm_state() {
+    # First kill any running QEMU processes
+    kill_qemu_processes
+    
     log_step "Cleaning previous VM state..."
     local cleaned=false
     
