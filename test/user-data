@@ -58,10 +58,6 @@ write_files:
       # Development environment configuration
       export ENVIRONMENT="dev"
     permissions: '0644'
-<<<<<<< Updated upstream
-=======
-    owner: poile:poile
->>>>>>> Stashed changes
   - path: /var/log/cloud-init-custom.log
     content: |
       === Cloud-Init Custom Script Log ===
@@ -112,14 +108,9 @@ runcmd:
   - [ sh, -c, 'echo "Configuring user environment..." >> /var/log/cloud-init-custom.log' ]
   - [ sh, -c, 'echo "source /home/poile/.bashrc_env" >> /home/poile/.bashrc' ]
   - [ chown, poile:poile, /home/poile/.bashrc ]
-<<<<<<< Updated upstream
   - [ chown, poile:poile, /home/poile/.bashrc_env ]
   - [ chown, -R, poile:poile, /home/poile ]
   - [ sh, -c, 'echo "Downloading startup script from test branch..." >> /var/log/cloud-init-custom.log' ]
-=======
-  - [ chown, -R, poile:poile, /home/poile ]
-  - [ sh, -c, 'echo "Downloading startup script..." >> /var/log/cloud-init-custom.log' ]
->>>>>>> Stashed changes
   - [ sh, -c, 'echo "Attempt 1: Using wget..." >> /var/log/cloud-init-custom.log' ]
   - [ sh, -c, 'wget --timeout=30 --tries=3 --dns-timeout=10 https://raw.githubusercontent.com/poiley/rinzler/test/terraform/scripts/init.sh -O /tmp/init.sh >> /var/log/cloud-init-custom.log 2>&1 || echo "wget failed, trying curl..." >> /var/log/cloud-init-custom.log' ]
   - [ sh, -c, 'if [ ! -f /tmp/init.sh ]; then echo "Attempt 2: Using curl..." >> /var/log/cloud-init-custom.log; curl --connect-timeout 30 --max-time 60 --retry 3 https://raw.githubusercontent.com/poiley/rinzler/test/terraform/scripts/init.sh -o /tmp/init.sh >> /var/log/cloud-init-custom.log 2>&1 || echo "curl also failed" >> /var/log/cloud-init-custom.log; fi' ]
