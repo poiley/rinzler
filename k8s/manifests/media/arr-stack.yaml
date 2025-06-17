@@ -1,0 +1,453 @@
+# Shared PVCs for downloads
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: downloads-pvc
+  namespace: media-server
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 500Gi
+---
+# Radarr (Movies)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: radarr-config-pvc
+  namespace: media-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  namespace: media-server
+  labels:
+    app: radarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+    spec:
+      containers:
+        - name: radarr
+          image: lscr.io/linuxserver/radarr:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Los_Angeles"
+            - name: RADARR__URLBASE
+              value: "/radarr"
+            - name: RADARR__AUTHENTICATION_METHOD
+              value: "1"
+          ports:
+            - containerPort: 7878
+              name: radarr-web
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /media
+            - name: downloads
+              mountPath: /downloads
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 7878
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 7878
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr-config-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr
+  namespace: media-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 7878
+      targetPort: 7878
+      name: radarr-web
+  selector:
+    app: radarr
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: radarr-ingress
+  namespace: media-server
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.rule: "PathPrefix(`/radarr`)"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /radarr
+            pathType: Prefix
+            backend:
+              service:
+                name: radarr
+                port:
+                  number: 7878
+---
+# Sonarr (TV Shows)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-config-pvc
+  namespace: media-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: media-server
+  labels:
+    app: sonarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      containers:
+        - name: sonarr
+          image: lscr.io/linuxserver/sonarr:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Los_Angeles"
+            - name: SONARR__AUTHENTICATION_METHOD
+              value: "1"
+          ports:
+            - containerPort: 8989
+              name: sonarr-web
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /media
+            - name: downloads
+              mountPath: /downloads
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8989
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8989
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: sonarr-config-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr
+  namespace: media-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8989
+      targetPort: 8989
+      name: sonarr-web
+  selector:
+    app: sonarr
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarr-ingress
+  namespace: media-server
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.rule: "PathPrefix(`/sonarr`)"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /sonarr
+            pathType: Prefix
+            backend:
+              service:
+                name: sonarr
+                port:
+                  number: 8989
+---
+# Lidarr (Music)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lidarr-config-pvc
+  namespace: media-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lidarr
+  namespace: media-server
+  labels:
+    app: lidarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lidarr
+  template:
+    metadata:
+      labels:
+        app: lidarr
+    spec:
+      containers:
+        - name: lidarr
+          image: lscr.io/linuxserver/lidarr:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Los_Angeles"
+            - name: LIDARR__AUTHENTICATION_METHOD
+              value: "1"
+          ports:
+            - containerPort: 8686
+              name: lidarr-web
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /media
+            - name: downloads
+              mountPath: /downloads
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8686
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8686
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: lidarr-config-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lidarr
+  namespace: media-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8686
+      targetPort: 8686
+      name: lidarr-web
+  selector:
+    app: lidarr
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lidarr-ingress
+  namespace: media-server
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.rule: "PathPrefix(`/lidarr`)"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /lidarr
+            pathType: Prefix
+            backend:
+              service:
+                name: lidarr
+                port:
+                  number: 8686
+---
+# Bazarr (Subtitles)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bazarr-config-pvc
+  namespace: media-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bazarr
+  namespace: media-server
+  labels:
+    app: bazarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bazarr
+  template:
+    metadata:
+      labels:
+        app: bazarr
+    spec:
+      containers:
+        - name: bazarr
+          image: lscr.io/linuxserver/bazarr:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Los_Angeles"
+          ports:
+            - containerPort: 6767
+              name: bazarr-web
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: movies
+              mountPath: /movies
+            - name: tv
+              mountPath: /tv
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 6767
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 6767
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: bazarr-config-pvc
+        - name: movies
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - name: tv
+          persistentVolumeClaim:
+            claimName: media-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bazarr
+  namespace: media-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6767
+      targetPort: 6767
+      name: bazarr-web
+  selector:
+    app: bazarr
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bazarr-ingress
+  namespace: media-server
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.rule: "PathPrefix(`/bazarr`)"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /bazarr
+            pathType: Prefix
+            backend:
+              service:
+                name: bazarr
+                port:
+                  number: 6767 

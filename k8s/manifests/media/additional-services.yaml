@@ -1,0 +1,245 @@
+# Jackett (Torrent Indexer)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jackett-config-pvc
+  namespace: media-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jackett
+  namespace: media-server
+  labels:
+    app: jackett
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jackett
+  template:
+    metadata:
+      labels:
+        app: jackett
+    spec:
+      containers:
+        - name: jackett
+          image: lscr.io/linuxserver/jackett:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Los_Angeles"
+            - name: AUTO_UPDATE
+              value: "true"
+          ports:
+            - containerPort: 9117
+              name: jackett-web
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+          livenessProbe:
+            httpGet:
+              path: /UI
+              port: 9117
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /UI
+              port: 9117
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jackett-config-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jackett
+  namespace: media-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9117
+      targetPort: 9117
+      name: jackett-web
+  selector:
+    app: jackett
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jackett-ingress
+  namespace: media-server
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.rule: "PathPrefix(`/jackett`)"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /jackett
+            pathType: Prefix
+            backend:
+              service:
+                name: jackett
+                port:
+                  number: 9117
+---
+# Tautulli (Plex Monitoring)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tautulli-config-pvc
+  namespace: media-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tautulli
+  namespace: media-server
+  labels:
+    app: tautulli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tautulli
+  template:
+    metadata:
+      labels:
+        app: tautulli
+    spec:
+      containers:
+        - name: tautulli
+          image: tautulli/tautulli
+          ports:
+            - containerPort: 8181
+              name: tautulli-web
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8181
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8181
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: tautulli-config-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tautulli
+  namespace: media-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8181
+      targetPort: 8181
+      name: tautulli-web
+  selector:
+    app: tautulli
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tautulli-ingress
+  namespace: media-server
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.rule: "PathPrefix(`/tautulli`)"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /tautulli
+            pathType: Prefix
+            backend:
+              service:
+                name: tautulli
+                port:
+                  number: 8181
+---
+# Flaresolverr (Cloudflare Bypass)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flaresolverr
+  namespace: media-server
+  labels:
+    app: flaresolverr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flaresolverr
+  template:
+    metadata:
+      labels:
+        app: flaresolverr
+    spec:
+      containers:
+        - name: flaresolverr
+          image: 21hsmw/flaresolverr:nodriver
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+            - name: LOG_HTML
+              value: "false"
+            - name: CAPTCHA_SOLVER
+              value: "none"
+            - name: TZ
+              value: "America/Los_Angeles"
+            - name: DRIVER
+              value: "nodriver"
+          ports:
+            - containerPort: 8191
+              name: flaresolverr
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr
+  namespace: media-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8191
+      targetPort: 8191
+      name: flaresolverr
+  selector:
+    app: flaresolverr 

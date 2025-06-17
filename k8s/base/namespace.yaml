@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media-server
+  labels:
+    name: media-server
+    app.kubernetes.io/managed-by: rancher
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+    app.kubernetes.io/managed-by: rancher
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: networking
+  labels:
+    name: networking
+    app.kubernetes.io/managed-by: rancher 

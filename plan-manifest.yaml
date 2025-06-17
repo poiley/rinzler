@@ -1,0 +1,101 @@
+plan_manifest:
+  metadata:
+    name: rinzler-iac-bootstrap
+    owner: "Benjamin Poile"
+    date: 2024-03-19
+    version: 0.2
+
+  background: |
+    You have a single Ubuntu 20.04+ server running Docker & ZFS, and a GitHub repo (github.com/poiley/rinzler)
+    containing all of your Docker‑Compose stacks, plus Terraform configurations. The goal is zero‑touch
+    restore of networking (UniFi), DNS (Pi‑hole), server bootstrap, and self‑hosted GitHub Actions runner,
+    driven entirely by Terraform modules and a single "apply" from your workstation.
+
+  objectives:
+    - Define and module‑ize every piece of your homelab infra in Terraform:
+      • UniFi VLANs, firewall rules, port‑forwards (using ubiquiti-community/unifi provider)
+      • Pi‑hole DNS records & DHCP reservations  
+      • Server bootstrap (OS packages, users, ZFS, Docker, .env injection, compose up)  
+      • GitHub self‑hosted runner registration & service  
+    - Wire up GitOps for your Docker‑Compose stacks via GitHub Actions workflows
+    - Ensure that a bare server—given only SSH access and that repo—can be reprovisioned in minutes
+    - Implement comprehensive testing strategy with GitHub Actions
+
+  assumptions:
+    - You start from a bare Ubuntu 20.04+ VM with SSH key auth enabled  
+    - Terraform CLI and your SSH private key live on your workstation  
+    - You have credentials/tokens for:
+      • UniFi controller (username/password or API key)
+      • Pi‑hole API (if used)  
+      • GitHub runner registration token  
+    - Networking equipment (UniFi USG Pro, switch) is manageable via Terraform provider  
+    - ZFS is pre‑installed or can be installed via remote‑exec  
+
+  scope:
+    - In‑scope:
+      • Terraform modules for Unifi, Pi‑hole, bootstrap, and runner
+      • `variables.tf` and `terraform.tfvars` to capture all configuration
+      • Remote‑exec scripts (shell) embedded in Terraform
+      • GitHub Actions workflows for testing and deployment
+      • Environment variable management and validation
+    - Out‑of‑scope (for v0.2):
+      • Prometheus/Uptime Kuma monitoring  
+      • Vault integration for secrets (using GitHub Secrets for now)
+      • Multi‑region or cloud backup
+      • Docker Swarm migration
+
+  deliverables:
+    - `terraform/modules/unifi/`  
+      • `main.tf`, `variables.tf`, `outputs.tf` using ubiquiti-community/unifi provider
+      • Support for both username/password and API key authentication
+      • Network, WAN, VLAN, and port forwarding management
+    - `terraform/modules/pihole/`  
+      • HCL to manage DNS entries & DHCP leases via cretz/pihole provider  
+    - `terraform/modules/bootstrap/`  
+      • null_resource with remote‑exec to install packages, clone repo, render `.env`, run `docker compose up`  
+    - `terraform/modules/runner/`  
+      • null_resource to download, configure, and start GH Actions runner as systemd service  
+    - Root `/terraform` with:
+      • `main.tf` wiring modules  
+      • `variables.tf` for all inputs  
+      • `terraform.tfvars.example` with placeholders
+    - `.github/workflows/` with:
+      • Test workflow for validation and planning
+      • Deployment workflow for production
+    - `scripts/` with:
+      • Test scripts for validation
+      • Environment variable management
+      • API testing utilities
+
+  tasks:
+    - id: TF‑M1
+      desc: "Update UniFi module to use ubiquiti-community/unifi provider"
+      owner: Beck
+      due: 2024-03-20
+    - id: TF‑M2
+      desc: "Implement comprehensive testing strategy"
+      owner: Beck
+      due: 2024-03-22
+    - id: TF‑M3
+      desc: "Add environment variable validation"
+      owner: Beck
+      due: 2024-03-24
+    - id: TF‑M4
+      desc: "Update documentation and examples"
+      owner: Beck
+      due: 2024-03-26
+    - id: TEST‑VM
+      desc: "Validation: Wipe VM → `terraform apply` → verify services & runner"
+      owner: Benjamin Poile
+      due: 2024-03-28
+
+  next_steps:
+    - Complete UniFi provider migration
+    - Implement comprehensive testing
+    - Add environment variable validation
+    - Update documentation
+    - Perform end‑to‑end deploy on test VM
+    - Add more test cases
+    - Improve error handling
+    - Add migration guide for existing users
+

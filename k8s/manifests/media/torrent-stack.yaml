@@ -1,0 +1,128 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vpn-config
+  namespace: media-server
+type: Opaque
+stringData:
+  WIREGUARD_PRIVATE_KEY: "REPLACE_WITH_YOUR_WIREGUARD_PRIVATE_KEY"
+  WIREGUARD_ADDRESSES: "10.0.0.1/24"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: torrent-stack
+  namespace: media-server
+  labels:
+    app: torrent-stack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: torrent-stack
+  template:
+    metadata:
+      labels:
+        app: torrent-stack
+    spec:
+      containers:
+        - name: gluetun
+          image: qmcgaw/gluetun
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          env:
+            - name: VPN_SERVICE_PROVIDER
+              value: "mullvad"
+            - name: VPN_TYPE
+              value: "wireguard"
+            - name: WIREGUARD_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vpn-config
+                  key: WIREGUARD_PRIVATE_KEY
+            - name: WIREGUARD_ADDRESSES
+              valueFrom:
+                secretKeyRef:
+                  name: vpn-config
+                  key: WIREGUARD_ADDRESSES
+            - name: SERVER_CITIES
+              value: "Seattle WA"
+            - name: SERVER_COUNTRIES
+              value: "USA"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Los_Angeles"
+            - name: DOT
+              value: "on"
+          ports:
+            - containerPort: 9091
+              name: transmission
+            - containerPort: 51820
+              name: wireguard
+          dnsConfig:
+            nameservers:
+              - "194.242.2.2"  # Mullvad DNS
+              - "10.64.0.1"    # Gluetun internal DNS
+        - name: transmission
+          image: linuxserver/transmission
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Los_Angeles"
+            - name: TRANSMISSION_WEB_UI
+              value: "transmission-web-control"
+          volumeMounts:
+            - name: media
+              mountPath: /media
+            - name: downloads
+              mountPath: /downloads
+          # Transmission uses the same network as gluetun via shared pod network
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: torrent-stack
+  namespace: media-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9091
+      targetPort: 9091
+      name: transmission-web
+  selector:
+    app: torrent-stack
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: transmission-ingress
+  namespace: media-server
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.rule: "PathPrefix(`/transmission`)"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /transmission
+            pathType: Prefix
+            backend:
+              service:
+                name: torrent-stack
+                port:
+                  number: 9091 
