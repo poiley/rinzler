@@ -3,9 +3,9 @@ services:
     image: dperson/samba:latest
     container_name: samba
     environment:
-      - PGID=${PGID}
-      - PUID=${PUID}
-      - TZ=${TZ}
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
       - SHARE=mount;/mount;yes;no;yes;all;none;none
       - WORKGROUP=WORKGROUP
     ports:

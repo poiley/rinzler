@@ -3,7 +3,7 @@ services:
     image: tautulli/tautulli
     container_name: tautulli
     ports:
-      - 8181:8181
+      - "8181:8181"
     volumes:
       - tautulli_data:/config
     networks:
@@ -13,10 +13,12 @@ services:
       - "traefik.http.routers.tautulli.entrypoints=web"
       - "traefik.http.routers.tautulli.rule=PathPrefix(`/tautulli`)"
       - "traefik.http.services.tautulli-service.loadbalancer.server.port=8181"
+
       - "traefik.http.middlewares.tautulli-strip.stripprefix.prefixes=/tautulli"
       - "traefik.http.middlewares.tautulli-prefix.addprefix.prefix=/tautulli"
       - "traefik.http.routers.tautulli.middlewares=tautulli-strip@docker,tautulli-prefix@docker"
-
+    restart: unless-stopped
+    
 volumes:
   tautulli_data:
     external: true

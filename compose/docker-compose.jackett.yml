@@ -11,7 +11,7 @@ services:
       - jackett_data:/config
       - /storage/downloads:/downloads
     ports:
-      - 9117:9117
+      - "9117:9117"
     restart: unless-stopped
 
 networks:
@@ -20,4 +20,4 @@ networks:
 
 volumes:
   jackett_data:
-      external: true
+    external: true

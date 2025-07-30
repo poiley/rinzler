@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  duckdns:
+    image: linuxserver/duckdns
+    container_name: duckdns
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - SUBDOMAINS=poile
+      - TOKEN=63b7895d-8fab-4294-aa03-df7c70bc3c5f
+
+    volumes:
+      - /storage/docker_volumes/duckdns:/config
+    restart: unless-stopped
+    networks:
+      - proxy
+
+  kavita:
+    image: linuxserver/kavita:latest
+    container_name: kavita
+    restart: unless-stopped
+    volumes:
+      - /storage/docker_volumes/kavita/config:/kavita/config
+      - /storage/media/comics:/kavita/mounts/comics
+      - /storage/media/books:/kavita/mounts/books
+      - /storage/media/manga:/kavita/mounts/manga
+    environment:
+      - TZ=America/Los_Angeles
+
+    networks:
+      - proxy
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "8079:80"
+      - "443:443"
+    volumes:
+      - /storage/docker_volumes/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - /storage/docker_volumes/caddy/data:/data
+      - /storage/docker_volumes/caddy/config:/config
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    driver: bridge

@@ -3,10 +3,11 @@ services:
     image: lscr.io/linuxserver/lidarr:latest
     container_name: lidarr
     environment:
-      - PGID=${PGID}
       - PUID=${PUID}
+      - PGID=${PGID}
       - TZ=${TZ}
-      - LIDARR__AUTHENTICATION_METHOD=1
+      - LIDARR__AUTHENTICATION_METHOD=${LIDARR__AUTHENTICATION_METHOD}
+      - LIDARR__URLBASE=${LIDARR__URLBASE}
     ports:
       - 8686:8686
     volumes:

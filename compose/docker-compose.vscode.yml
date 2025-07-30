@@ -1,15 +1,17 @@
+version: '3.8'
+
 services:
   code-server:
     image: lscr.io/linuxserver/code-server:latest
     container_name: vscode
     environment:
-      - PGID=${PGID}
-      - PUID=${PUID}
-      - TZ=${TZ}
-      - DEFAULT_WORKSPACE=/config/workspace
+      - PUID=1000  # Replace with your user ID
+      - PGID=1000  # Replace with your group ID
+      - TZ=US/Los_Angeles  # Replace with your timezone
+      - DEFAULT_WORKSPACE=/config/workspace #optional
     volumes:
-      - /storage/docker_volumes/vscode_server:/config
-      - /storage/repos/:/config/workspace
+      - /storage/docker_volumes/vscode_server:/config  # Path to store configuration files
+      - /storage/repos/:/config/workspace  # Path to store workspace data
     ports:
-      - 8443:8443
+      - "8443:8443"
     restart: unless-stopped

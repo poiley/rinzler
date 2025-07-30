@@ -1,3 +1,5 @@
+---
+version: "2.1"
 services:
   flaresolverr:
     image:  21hsmw/flaresolverr:nodriver
@@ -6,8 +8,8 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_HTML=${LOG_HTML:-false}
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
-      - TZ=${TZ}
+      - TZ=America/Los_Angeles
       - DRIVER=nodriver
     ports:
-      - 8191:8191
+      - "${PORT:-8191}:8191"
     restart: unless-stopped 

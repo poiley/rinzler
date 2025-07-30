@@ -1,0 +1,20 @@
+services:
+  fmd2:
+    image: elrydocker/fmd2:latest
+    container_name: fmd2
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - UMASK=022
+      - THRESHOLD_MINUTES=3
+      - TRANSFER_FILE_TYPE=.cbz
+    ports:
+      - 3000:3000
+    volumes:
+      - /storage/docker_volumes/fmd2/userdata:/app/FMD2/userdata
+      - /storage/downloads/manga:/downloads
+      - /storage/media/manga:/manga
+    restart: unless-stopped
+    security_opt:
+      - seccomp:unconfined

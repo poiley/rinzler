@@ -1,0 +1,24 @@
+services:
+  wireguard:
+    image: linuxserver/wireguard
+    container_name: wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - SERVERURL=${SERVERURL}
+      - PEERS=${PEERS}
+      - PEERDNS=${LOCAL_IP}
+    dns:
+     - ${LOCAL_IP}
+    volumes:
+      - /storage/docker_volumes/wireguard/config:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - 51821:51821
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped

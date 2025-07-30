@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   gluetun:
     image: qmcgaw/gluetun
@@ -7,32 +9,35 @@ services:
     environment:
       - VPN_SERVICE_PROVIDER=mullvad
       - VPN_TYPE=wireguard
-      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
-      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - WIREGUARD_PRIVATE_KEY=EKHPK+3TEeDhyOJ0QQfogjHtb4XJYoHoPsH7RAEehnE= # From usa-sea-wg-001.conf from https://mullvad.net/en/account/wireguard-config
+      - WIREGUARD_ADDRESSES=10.64.197.249/32 # From usa-sea-wg-001.conf from https://mullvad.net/en/account/wireguard-config
       - SERVER_CITIES=Seattle WA
       - SERVER_COUNTRIES=USA
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
       - DOT=on
-    dns:
-      - 194.242.2.2  # Mullvad DNS
-      - 10.64.0.1    # Gluetun internal DNS for VPN resolution
     ports:
-      - 9091:9091    # Transmission Web UI
-      - 51820:51820
+      - 9091:9091       # Transmission Web UI
+      - 51820:51820     # Wireguard
+    dns:
+      - 100.64.0.63 # From usa-sea-wg-001.conf from https://mullvad.net/en/account/wireguard-config
+    restart: unless-stopped
+    
 
   transmission:
     image: linuxserver/transmission
     container_name: transmission
     environment:
-      - PGID=${PGID}
-      - PUID=${PUID}
-      - TZ=${TZ}
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
       - TRANSMISSION_WEB_UI=transmission-web-control
     volumes:
       - /storage/media:/media
       - /storage/downloads:/downloads
-    depends_on:
-      - gluetun
     network_mode: "service:gluetun"  # Routes all traffic through gluetun
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    restart: unless-stopped

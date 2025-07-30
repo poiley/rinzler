@@ -1,21 +1,43 @@
+version: '3.8'
+
 services:
-  wireguard:
-    image: linuxserver/wireguard
-    container_name: wireguard
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: vpn
     cap_add:
       - NET_ADMIN
-      - SYS_MODULE
     environment:
-      - PGID=${PGID}
-      - PUID=${PUID}
-      - TZ=${TZ}
-      - SERVERURL=auto
-      - PEERS=3
-    volumes:
-      - /storage/docker_volumes/wireguard/config:/config
-      - /lib/modules:/lib/modules
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=EKHPK+3TEeDhyOJ0QQfogjHtb4XJYoHoPsH7RAEehnE= # From usa-sea-wg-001.conf from https://mullvad.net/en/account/wireguard-config
+      - WIREGUARD_ADDRESSES=10.64.197.249/32 # From usa-sea-wg-001.conf from https://mullvad.net/en/account/wireguard-config
+      - SERVER_CITIES=Seattle WA
+      - SERVER_COUNTRIES=USA
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - DOT=on
     ports:
-      - 51820:51820/udp
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
+      - 9091:9091       # Transmission Web UI
+      - 51820:51820     # Wireguard
+    dns:
+      - 100.64.0.63 # From usa-sea-wg-001.conf from https://mullvad.net/en/account/wireguard-config
+    restart: unless-stopped
+    
+
+  transmission:
+    image: linuxserver/transmission
+    container_name: transmission
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - TRANSMISSION_WEB_UI=transmission-web-control
+    volumes:
+      - /storage/media:/media
+      - /storage/downloads:/downloads
+    network_mode: "service:gluetun"  # Routes all traffic through gluetun
+    depends_on:
+      gluetun:
+        condition: service_healthy
     restart: unless-stopped

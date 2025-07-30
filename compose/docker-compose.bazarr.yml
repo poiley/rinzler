@@ -3,9 +3,9 @@ services:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
     environment:
-      - PGID=${PGID}
-      - PUID=${PUID}
-      - TZ=${TZ}
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
     volumes:
       - /storage/docker_volumes/bazarr_config:/config
       - /storage/media/movies:/movies

@@ -2,20 +2,35 @@ services:
   plex:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
+    restart: always
+    runtime: nvidia
+    ports:
+      - "32400:32400"
+      - "32400:32400/udp"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      - DEBIAN_FRONTEND=noninteractive
+      - LANG=en_US.UTF-8
+      - LANGUAGE=en_US.UTF-8
+      - LSIO_FIRST_PARTY=true
+      - PLEX_ARCH=amd64
+      - PLEX_MEDIA_SERVER_APPLICATION_SUPPORT_DIR=/config/Library/Application Support
+      - PLEX_MEDIA_SERVER_HOME=/usr/lib/plexmediaserver
+      - PLEX_MEDIA_SERVER_INFO_DEVICE=Docker Container (LinuxServer.io)
+      - PLEX_MEDIA_SERVER_INFO_VENDOR=Docker
       - PLEX_MEDIA_SERVER_MAX_PLUGIN_PROCS=6
       - PLEX_MEDIA_SERVER_USER=${PLEX_MEDIA_SERVER_USER}
-      - VERSION=docker
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+      - S6_STAGE2_HOOK=/docker-mods
+      - S6_VERBOSITY=1
+      - TERM=xterm
+      - TMPDIR=/run/plex-temp
+      - VIRTUAL_ENV=/lsopy
+      - ADVERTISE_IP=${ADVERTISE_IP}
+      - PLEX_PREFER_PORT=${PLEX_PREFER_PORT}
     volumes:
-      - /storage/docker_volumes/plex_data/plex_data/_data:/config
+      - /storage/docker-volumes/plex_data/plex_data/_data:/config
       - /storage/media:/media
-    ports:
-      - 32400:32400
-    restart: unless-stopped
-
-volumes:
-  plex_data:
-    external: true 

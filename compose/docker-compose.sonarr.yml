@@ -3,24 +3,30 @@ services:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
     environment:
-      - PGID=${PGID}
       - PUID=${PUID}
+      - PGID=${PGID}
       - TZ=${TZ}
-      - SONARR__AUTHENTICATION_METHOD=1
+      - SONARR__AUTHENTICATION_METHOD=${SONARR__AUTHENTICATION_METHOD}
+      - SONARR__URLBASE=${SONARR__URLBASE}
     volumes:
       - sonarr_data:/config
       - /storage/media:/media
       - /storage/downloads:/downloads
     networks:
-      - proxy 
+      - proxy  # Adding network to connect with Traefik
     labels:
       - "traefik.enable=true"
+      # Router configuration - will handle requests to /sonarr
       - "traefik.http.routers.sonarr.rule=PathPrefix(`/sonarr`)"
       - "traefik.http.routers.sonarr.entrypoints=web"
+      # Authentication middleware
       - "traefik.http.middlewares.sonarr-auth.headers.customrequestheaders.Authorization=${BASIC_AUTH_HEADER}"
+      # URL handling middlewares
       - "traefik.http.middlewares.sonarr-prefix.addprefix.prefix=/sonarr"
       - "traefik.http.middlewares.sonarr-strip.stripprefix.prefixes=/sonarr"
+      # Service configuration - Sonarr uses port 8989 by default
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+      # Apply middlewares in the same order we used for Radarr
       - "traefik.http.routers.sonarr.middlewares=sonarr-auth@docker,sonarr-prefix@docker,sonarr-strip@docker"
     restart: unless-stopped
 
