@@ -1,5 +1,18 @@
 # Environment variables
-.env 
+.env
+.env.secret
+.env.local
 
 # macOS system files
-.DS_Store 
+.DS_Store
+
+# Secrets - NEVER commit these
+*.secret
+*-secret.yaml
+k8s-generated/
+secrets/
+
+# But DO commit these
+!.env.secret.example
+!*-template.yaml
+!*-secret-template.yaml

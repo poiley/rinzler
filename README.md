@@ -1,67 +1,75 @@
-# Docker Server Configuration
+# Rinzler - K3s Media Server
 
-Infrastructure-as-code for personal media server.
+A single-node K3s deployment for a home media server with GitOps, migrated from Docker/Portainer.
 
-## Project Structure
+## 🚀 Quick Start
 
-```
-.
-├── compose/                 # Docker Compose configurations
-│   ├── docker-compose.jackett.yml
-│   ├── docker-compose.plex.yml
-│   └── ...                 # Other service configurations
-├── terraform/              # Terraform configurations
-│   ├── versions.tf         # Terraform version constraints
-│   └── .terraform-version  # tfenv version specification
-└── README.md
-```
-
-## Setup
-
-1. Clone repository
-2. Copy .env.example to .env:
-   ```bash
-   cp .env.example .env
-   ```
-3. Edit .env and fill in your secure values:
-   - Generate a new WireGuard private key
-   - Set a secure Pihole password
-   - Generate Base64 encoded credentials for Basic Auth
-   - Adjust timezone if needed
-   - Set appropriate PUID/PGID for your system
-4. Deploy Dockge:
-   ```bash
-   docker compose -f docker-compose.dockge.yml up -d
-   ```
-5. Access Dockge at http://localhost:5001
-   - Stacks will be automatically detected from the `compose` directory
-
-## Usage
-
-### Docker Compose
-
-To start a service:
 ```bash
-docker compose -f compose/docker-compose.SERVICE.yml up -d
+# 1. Clone repository
+git clone https://github.com/yourusername/rinzler.git
+cd rinzler
+
+# 2. Set up secrets (see docs/setup/03-deployment-workflow.md)
+cp .env.secret.example .env.secret
+nano .env.secret
+
+# 3. Install K3s
+sudo ./scripts/k3s-install.sh
+
+# 4. Deploy services
+kubectl apply -f k8s/infrastructure/traefik/
+# ... continue with other services
 ```
-Replace `SERVICE` with the service name (e.g., plex, jackett).
 
-### Terraform
+## 📚 Documentation
 
-Ensure you have the correct Terraform version:
-```bash
-tfenv install
-tfenv use $(cat terraform/.terraform-version)
+All documentation is organized in the `/docs` directory:
+
+- **[Setup Guide](docs/setup/01-installation-guide.md)** - Complete installation instructions
+- **[Quick Reference](docs/reference/quick-reference.md)** - Common commands and tasks
+- **[Documentation Index](docs/README.md)** - Full documentation listing
+
+## 🏗️ Architecture
+
+- **Platform**: K3s (lightweight Kubernetes) on Ubuntu 20.04
+- **GPU**: NVIDIA GTX 750 Ti for Plex hardware transcoding  
+- **Storage**: 43.6TB ZFS pool at `/storage`
+- **Networking**: Traefik ingress with `.grid` domain
+- **GitOps**: ArgoCD for automated deployments
+
+## 📦 Services
+
+| Service | Purpose | Access URL |
+|---------|---------|------------|
+| **Plex** | Media server | `plex.rinzler.grid` |
+| **Sonarr** | TV management | `sonarr.rinzler.grid` |
+| **Radarr** | Movie management | `radarr.rinzler.grid` |
+| **Transmission** | Downloads (VPN) | `transmission.rinzler.grid` |
+| **Pi-hole** | DNS/Ad blocking | `pihole.rinzler.grid` |
+| **Traefik** | Reverse proxy | `traefik.rinzler.grid` |
+
+[Full service list →](docs/reference/quick-reference.md#service-access)
+
+## 🗂️ Repository Structure
+
+```
+rinzler/
+├── k8s/           # Kubernetes manifests
+├── scripts/       # Installation and maintenance scripts  
+├── docs/          # All documentation
+├── compose/       # Original Docker files (reference)
+└── .env.secret.example  # Secrets template
 ```
 
-## Requirements
+See [Repository Structure](docs/reference/repository-structure.md) for details.
 
-- Docker & Docker Compose
-- Terraform >= 1.0.0
-- tfenv (recommended)
+## 🔒 Security
 
-## Future Enhancements
-- [ ] Docker Swarm migration
-- [ ] Backup/restore procedures
-- [ ] Monitoring and alerting
-- [ ] CI/CD pipeline
+This repository is designed to be public-friendly:
+- Real secrets go in `.env.secret` (git-ignored)
+- Example values provided for all configurations
+- See [Secrets Management](docs/operations/secrets-management.md)
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) file for details.
