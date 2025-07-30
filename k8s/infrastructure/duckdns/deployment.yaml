@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: duckdns
+  namespace: infrastructure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: duckdns
+  template:
+    metadata:
+      labels:
+        app: duckdns
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: duckdns
+        image: linuxserver/duckdns
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Los_Angeles"
+        - name: SUBDOMAINS
+          value: "poile"
+        - name: TOKEN
+          value: "63b7895d-8fab-4294-aa03-df7c70bc3c5f"  # Move to secret in production
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+      volumes:
+      - name: config
+        hostPath:
+          path: /storage/docker_volumes/duckdns
+          type: Directory

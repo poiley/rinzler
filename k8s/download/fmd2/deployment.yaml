@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fmd2
+  namespace: download
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: fmd2
+  template:
+    metadata:
+      labels:
+        app: fmd2
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      securityContext:
+        seccompProfile:
+          type: Unconfined  # Required by FMD2
+      containers:
+      - name: fmd2
+        image: elrydocker/fmd2:latest
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Los_Angeles"
+        - name: UMASK
+          value: "022"
+        - name: THRESHOLD_MINUTES
+          value: "3"
+        - name: TRANSFER_FILE_TYPE
+          value: ".cbz"
+        ports:
+        - containerPort: 3000
+          name: http
+        volumeMounts:
+        - name: userdata
+          mountPath: /app/FMD2/userdata
+        - name: downloads
+          mountPath: /downloads
+        - name: manga
+          mountPath: /manga
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+      volumes:
+      - name: userdata
+        hostPath:
+          path: /storage/docker_volumes/fmd2/userdata
+          type: Directory
+      - name: downloads
+        hostPath:
+          path: /storage/downloads/manga
+          type: Directory
+      - name: manga
+        hostPath:
+          path: /storage/media/manga
+          type: Directory

@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tautulli
+  namespace: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tautulli
+  template:
+    metadata:
+      labels:
+        app: tautulli
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: tautulli
+        image: tautulli/tautulli
+        ports:
+        - containerPort: 8181
+          name: http
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 8181
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 8181
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: config
+        hostPath:
+          path: /var/lib/docker/volumes/tautulli_data/_data
+          type: Directory

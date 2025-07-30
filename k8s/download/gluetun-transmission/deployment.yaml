@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gluetun-transmission
+  namespace: download
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: gluetun-transmission
+  template:
+    metadata:
+      labels:
+        app: gluetun-transmission
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      # Gluetun VPN container
+      - name: gluetun
+        image: qmcgaw/gluetun
+        securityContext:
+          capabilities:
+            add:
+              - NET_ADMIN
+        env:
+        - name: VPN_SERVICE_PROVIDER
+          value: "mullvad"
+        - name: VPN_TYPE
+          value: "wireguard"
+        - name: WIREGUARD_PRIVATE_KEY
+          value: "EKHPK+3TEeDhyOJ0QQfogjHtb4XJYoHoPsH7RAEehnE="
+        - name: WIREGUARD_ADDRESSES
+          value: "10.64.197.249/32"
+        - name: SERVER_CITIES
+          value: "Seattle WA"
+        - name: SERVER_COUNTRIES
+          value: "USA"
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Los_Angeles"
+        - name: DOT
+          value: "on"
+        - name: DNS_ADDRESS
+          value: "100.64.0.63"
+        - name: FIREWALL_OUTBOUND_SUBNETS
+          value: "192.168.1.0/24"  # Allow local network access
+        - name: FIREWALL_INPUT_PORTS
+          value: "9091"  # Transmission web UI
+        ports:
+        - containerPort: 9091
+          name: transmission
+        - containerPort: 51820
+          name: wireguard
+          protocol: UDP
+        volumeMounts:
+        - name: gluetun-config
+          mountPath: /gluetun
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        livenessProbe:
+          exec:
+            command:
+              - /gluetun-entrypoint
+              - healthcheck
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          
+      # Transmission container
+      - name: transmission
+        image: linuxserver/transmission
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Los_Angeles"
+        - name: TRANSMISSION_WEB_UI
+          value: "transmission-web-control"
+        volumeMounts:
+        - name: transmission-config
+          mountPath: /config
+        - name: media
+          mountPath: /media
+        - name: downloads
+          mountPath: /downloads
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+            
+      volumes:
+      - name: gluetun-config
+        emptyDir: {}
+      - name: transmission-config
+        hostPath:
+          path: /var/lib/docker/volumes/transmission_data/_data
+          type: Directory
+      - name: media
+        hostPath:
+          path: /storage/media
+          type: Directory
+      - name: downloads
+        hostPath:
+          path: /storage/downloads
+          type: Directory

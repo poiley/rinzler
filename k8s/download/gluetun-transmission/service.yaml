@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: transmission
+  namespace: download
+spec:
+  selector:
+    app: gluetun-transmission
+  ports:
+  - name: web-ui
+    port: 9091
+    targetPort: 9091
+  - name: wireguard
+    port: 51820
+    targetPort: 51820
+    protocol: UDP

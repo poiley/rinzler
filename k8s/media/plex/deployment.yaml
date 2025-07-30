@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # Important for stateful apps
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: plex
+        image: lscr.io/linuxserver/plex:latest
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Los_Angeles"
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: "compute,video,utility"
+        - name: DEBIAN_FRONTEND
+          value: "noninteractive"
+        - name: LANG
+          value: "en_US.UTF-8"
+        - name: LANGUAGE
+          value: "en_US.UTF-8"
+        - name: LSIO_FIRST_PARTY
+          value: "true"
+        - name: PLEX_ARCH
+          value: "amd64"
+        - name: PLEX_MEDIA_SERVER_APPLICATION_SUPPORT_DIR
+          value: "/config/Library/Application Support"
+        - name: PLEX_MEDIA_SERVER_HOME
+          value: "/usr/lib/plexmediaserver"
+        - name: PLEX_MEDIA_SERVER_INFO_DEVICE
+          value: "Docker Container (LinuxServer.io)"
+        - name: PLEX_MEDIA_SERVER_INFO_VENDOR
+          value: "Docker"
+        - name: PLEX_MEDIA_SERVER_MAX_PLUGIN_PROCS
+          value: "6"
+        - name: PLEX_MEDIA_SERVER_USER
+          value: "ben.poile"
+        - name: ADVERTISE_IP
+          value: "http://192.168.1.227:32400,https://poile.duckdns.org:32400"
+        - name: S6_CMD_WAIT_FOR_SERVICES_MAXTIME
+          value: "0"
+        - name: S6_STAGE2_HOOK
+          value: "/docker-mods"
+        - name: S6_VERBOSITY
+          value: "1"
+        - name: TERM
+          value: "xterm"
+        - name: TMPDIR
+          value: "/run/plex-temp"
+        - name: VIRTUAL_ENV
+          value: "/lsopy"
+        - name: ADVERTISE_IP
+          value: "http://192.168.1.227:32400,https://poile.duckdns.org:32400"
+        - name: PLEX_PREFER_PORT
+          value: "32400"
+        ports:
+        - containerPort: 32400
+          name: plex
+          protocol: TCP
+        - containerPort: 32400
+          name: plex-udp
+          protocol: UDP
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: media
+          mountPath: /media
+        - name: transcode
+          mountPath: /transcode
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+            memory: 3Gi
+          requests:
+            cpu: 500m
+            memory: 2Gi
+      volumes:
+      - name: config
+        hostPath:
+          path: /storage/docker-volumes/plex_data/plex_data/_data
+          type: Directory
+      - name: media
+        hostPath:
+          path: /storage/media
+          type: Directory
+      - name: transcode
+        emptyDir: {}

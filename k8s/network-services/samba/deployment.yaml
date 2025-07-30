@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samba
+  namespace: network-services
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: samba
+  template:
+    metadata:
+      labels:
+        app: samba
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: samba
+        image: dperson/samba:latest
+        env:
+        - name: TZ
+          value: "America/Los_Angeles"
+        - name: WORKGROUP
+          value: "WORKGROUP"
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: SHARE
+          value: "mount;/mount;yes;no;yes;all;none;none"
+        ports:
+        - containerPort: 139
+          name: netbios-ssn
+        - containerPort: 445
+          name: microsoft-ds
+        volumeMounts:
+        - name: storage
+          mountPath: /mount
+        - name: samba-lib
+          mountPath: /var/lib/samba
+        - name: samba-cache
+          mountPath: /var/cache/samba
+        - name: samba-run
+          mountPath: /run/samba
+        - name: samba-log
+          mountPath: /var/log/samba
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        livenessProbe:
+          tcpSocket:
+            port: 445
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          tcpSocket:
+            port: 445
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: storage
+        hostPath:
+          path: /storage
+          type: Directory
+      - name: samba-lib
+        emptyDir: {}
+      - name: samba-cache
+        emptyDir: {}
+      - name: samba-run
+        emptyDir: {}
+      - name: samba-log
+        emptyDir: {}

@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kavita
+  namespace: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kavita
+  template:
+    metadata:
+      labels:
+        app: kavita
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: kavita
+        image: linuxserver/kavita:latest
+        env:
+        - name: TZ
+          value: "America/Los_Angeles"
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        ports:
+        - containerPort: 5000
+          name: http
+        volumeMounts:
+        - name: config
+          mountPath: /kavita/config
+        - name: comics
+          mountPath: /kavita/mounts/comics
+        - name: books
+          mountPath: /kavita/mounts/books
+        - name: manga
+          mountPath: /kavita/mounts/manga
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+      volumes:
+      - name: config
+        hostPath:
+          path: /storage/docker_volumes/kavita/config
+          type: Directory
+      - name: comics
+        hostPath:
+          path: /storage/media/comics
+          type: Directory
+      - name: books
+        hostPath:
+          path: /storage/media/books
+          type: Directory
+      - name: manga
+        hostPath:
+          path: /storage/media/manga
+          type: Directory
