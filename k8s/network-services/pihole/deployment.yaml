@@ -33,7 +33,10 @@ spec:
         - name: TZ
           value: "America/Los_Angeles"
         - name: WEBPASSWORD
-          value: "password"
+          valueFrom:
+            secretKeyRef:
+              name: pihole-secret
+              key: webpassword
         - name: RATE_LIMIT
           value: "0/0"  # From .env.example
         - name: PIHOLE_DNS_

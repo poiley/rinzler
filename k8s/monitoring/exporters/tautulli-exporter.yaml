@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tautulli-exporter
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tautulli-exporter
+  template:
+    metadata:
+      labels:
+        app: tautulli-exporter
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: tautulli-exporter
+        image: nwalke/tautulli_exporter:v0.1.0
+        env:
+        - name: TAUTULLI_URI
+          value: "http://tautulli.media:8181"
+        - name: TAUTULLI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: monitoring-secrets
+              key: tautulli-api-key
+        ports:
+        - containerPort: 9487
+          name: metrics
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tautulli-exporter
+  namespace: monitoring
+spec:
+  selector:
+    app: tautulli-exporter
+  ports:
+  - name: metrics
+    port: 9487
+    targetPort: 9487

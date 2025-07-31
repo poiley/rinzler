@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exportarr-sonarr
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exportarr-sonarr
+  template:
+    metadata:
+      labels:
+        app: exportarr-sonarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9708"
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: exportarr
+        image: ghcr.io/onedr0p/exportarr:v1.6.0
+        args:
+          - sonarr
+        env:
+        - name: PORT
+          value: "9708"
+        - name: URL
+          value: "http://sonarr.arr-stack:8989"
+        - name: APIKEY
+          valueFrom:
+            secretKeyRef:
+              name: monitoring-secrets
+              key: sonarr-api-key
+        - name: ENABLE_ADDITIONAL_METRICS
+          value: "true"
+        - name: ENABLE_UNKNOWN_QUEUE_ITEMS
+          value: "true"
+        - name: ENABLE_EPISODE_QUALITY_METRICS
+          value: "true"
+        ports:
+        - containerPort: 9708
+          name: metrics
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exportarr-sonarr
+  namespace: monitoring
+  labels:
+    app: exportarr-sonarr
+spec:
+  selector:
+    app: exportarr-sonarr
+  ports:
+  - name: metrics
+    port: 9708
+    targetPort: 9708

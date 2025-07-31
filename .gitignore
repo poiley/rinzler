@@ -1,6 +1,7 @@
 # Environment variables
 .env
 .env.secret
+.env.secrets
 .env.local
 
 # macOS system files

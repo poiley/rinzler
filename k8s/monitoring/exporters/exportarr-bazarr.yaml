@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exportarr-bazarr
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exportarr-bazarr
+  template:
+    metadata:
+      labels:
+        app: exportarr-bazarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9710"
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: exportarr
+        image: ghcr.io/onedr0p/exportarr:v1.6.0
+        args:
+          - bazarr
+        env:
+        - name: PORT
+          value: "9710"
+        - name: URL
+          value: "http://bazarr.arr-stack:6767"
+        - name: APIKEY
+          valueFrom:
+            secretKeyRef:
+              name: monitoring-secrets
+              key: bazarr-api-key
+        ports:
+        - containerPort: 9710
+          name: metrics
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exportarr-bazarr
+  namespace: monitoring
+  labels:
+    app: exportarr-bazarr
+spec:
+  selector:
+    app: exportarr-bazarr
+  ports:
+  - name: metrics
+    port: 9710
+    targetPort: 9710

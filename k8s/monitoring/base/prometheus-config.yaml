@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 30s
+      evaluation_interval: 30s
+
+    scrape_configs:
+      # Prometheus self-monitoring
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      # Node Exporter
+      - job_name: 'node-exporter'
+        static_configs:
+          - targets: ['node-exporter.monitoring:9100']
+
+      # ArgoCD metrics
+      - job_name: 'argocd-metrics'
+        static_configs:
+          - targets: 
+            - 'argocd-metrics.argocd:8082'
+            - 'argocd-server.argocd:8083'
+            - 'argocd-repo-server.argocd:8084'
+
+      # Radarr
+      - job_name: 'radarr'
+        metrics_path: '/feed/v1/prometheus'
+        static_configs:
+          - targets: ['radarr.arr-stack:7878']
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            target_label: app
+            replacement: 'radarr'
+
+      # Sonarr
+      - job_name: 'sonarr'
+        metrics_path: '/feed/v1/prometheus'
+        static_configs:
+          - targets: ['sonarr.arr-stack:8989']
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            target_label: app
+            replacement: 'sonarr'
+
+      # Lidarr
+      - job_name: 'lidarr'
+        metrics_path: '/feed/v1/prometheus'
+        static_configs:
+          - targets: ['lidarr.arr-stack:8686']
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            target_label: app
+            replacement: 'lidarr'
+
+      # Plex (using Tautulli exporter)
+      - job_name: 'tautulli'
+        static_configs:
+          - targets: ['tautulli-exporter.monitoring:9487']
+
+      # Transmission exporter
+      - job_name: 'transmission'
+        static_configs:
+          - targets: ['transmission-exporter.monitoring:19091']
+
+      # Exportarr metrics
+      - job_name: 'exportarr-radarr'
+        static_configs:
+          - targets: ['exportarr-radarr.monitoring:9707']
+      
+      - job_name: 'exportarr-sonarr'
+        static_configs:
+          - targets: ['exportarr-sonarr.monitoring:9708']
+      
+      - job_name: 'exportarr-lidarr'
+        static_configs:
+          - targets: ['exportarr-lidarr.monitoring:9709']
+      
+      - job_name: 'exportarr-bazarr'
+        static_configs:
+          - targets: ['exportarr-bazarr.monitoring:9710']
+
+      # Kubernetes metrics
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name

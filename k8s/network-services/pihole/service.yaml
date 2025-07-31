@@ -5,6 +5,7 @@ metadata:
   namespace: network-services
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
   selector:
     app: pihole
   ports:

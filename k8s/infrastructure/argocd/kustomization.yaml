@@ -8,5 +8,5 @@ resources:
   - configmap.yaml
   - rbac.yaml
   - role.yaml
-  - secret.yaml
+  - secret-from-env.yaml
   - ingress.yaml

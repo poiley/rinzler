@@ -28,7 +28,10 @@ spec:
         - name: SUBDOMAINS
           value: "poile"
         - name: TOKEN
-          value: "63b7895d-8fab-4294-aa03-df7c70bc3c5f"  # Move to secret in production
+          valueFrom:
+            secretKeyRef:
+              name: duckdns-secret
+              key: token
         volumeMounts:
         - name: config
           mountPath: /config

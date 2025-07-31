@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exportarr-lidarr
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exportarr-lidarr
+  template:
+    metadata:
+      labels:
+        app: exportarr-lidarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9709"
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: exportarr
+        image: ghcr.io/onedr0p/exportarr:v1.6.0
+        args:
+          - lidarr
+        env:
+        - name: PORT
+          value: "9709"
+        - name: URL
+          value: "http://lidarr.arr-stack:8686"
+        - name: APIKEY
+          valueFrom:
+            secretKeyRef:
+              name: monitoring-secrets
+              key: lidarr-api-key
+        - name: ENABLE_ADDITIONAL_METRICS
+          value: "true"
+        - name: ENABLE_UNKNOWN_QUEUE_ITEMS
+          value: "true"
+        ports:
+        - containerPort: 9709
+          name: metrics
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exportarr-lidarr
+  namespace: monitoring
+  labels:
+    app: exportarr-lidarr
+spec:
+  selector:
+    app: exportarr-lidarr
+  ports:
+  - name: metrics
+    port: 9709
+    targetPort: 9709

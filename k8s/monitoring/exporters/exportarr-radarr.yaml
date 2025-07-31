@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exportarr-radarr
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exportarr-radarr
+  template:
+    metadata:
+      labels:
+        app: exportarr-radarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9707"
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: exportarr
+        image: ghcr.io/onedr0p/exportarr:v1.6.0
+        args:
+          - radarr
+        env:
+        - name: PORT
+          value: "9707"
+        - name: URL
+          value: "http://radarr.arr-stack:7878"
+        - name: APIKEY
+          valueFrom:
+            secretKeyRef:
+              name: monitoring-secrets
+              key: radarr-api-key
+        - name: ENABLE_ADDITIONAL_METRICS
+          value: "true"
+        - name: ENABLE_UNKNOWN_QUEUE_ITEMS
+          value: "true"
+        ports:
+        - containerPort: 9707
+          name: metrics
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exportarr-radarr
+  namespace: monitoring
+  labels:
+    app: exportarr-radarr
+spec:
+  selector:
+    app: exportarr-radarr
+  ports:
+  - name: metrics
+    port: 9707
+    targetPort: 9707
