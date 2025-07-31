@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-mcp
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: "*"
+    chart: grafana-mcp
+    helm:
+      values: |
+        grafana:
+          existingSecret: grafana-mcp-secret
+          existingSecretKey: api-key
+          url: "http://grafana.monitoring.svc.cluster.local:3000"
+        
+        service:
+          type: ClusterIP
+          port: 80
+        
+        ingress:
+          enabled: true
+          hosts:
+            - host: grafana-mcp.rinzler.grid
+              paths:
+                - path: /
+                  pathType: Prefix
+          annotations:
+            traefik.ingress.kubernetes.io/router.entrypoints: web
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mcp-servers
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
