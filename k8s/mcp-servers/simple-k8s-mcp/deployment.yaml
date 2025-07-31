@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-k8s-mcp
+  namespace: mcp-servers
+  labels:
+    app: simple-k8s-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simple-k8s-mcp
+  template:
+    metadata:
+      labels:
+        app: simple-k8s-mcp
+    spec:
+      serviceAccountName: k8s-mcp-server
+      containers:
+      - name: simple-k8s-mcp
+        image: docker.io/mcpservers/server-kubernetes:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: MCP_TRANSPORT
+          value: "sse"
+        - name: PORT
+          value: "3000"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
