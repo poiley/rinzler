@@ -16,16 +16,18 @@ echo "Applying secrets..."
 cd /home/poile/repos/rinzler
 ./scripts/apply-secrets.sh
 
-# Deploy monitoring stack
-echo "Deploying monitoring stack..."
-cd k8s/monitoring
-kubectl apply -f prometheus/
-kubectl apply -f grafana/
-kubectl apply -f exporters/
+# Note: This script is for initial directory setup only
+# The actual deployment is managed by ArgoCD
 
-echo "Waiting for pods to be ready..."
-kubectl wait --namespace=monitoring --for=condition=available --timeout=300s deployment/prometheus
-kubectl wait --namespace=monitoring --for=condition=available --timeout=300s deployment/grafana
+echo "Monitoring stack directory permissions configured!"
+echo ""
+echo "To deploy the monitoring stack:"
+echo "1. Ensure your .env.secrets file is configured"
+echo "2. Run ./scripts/apply-secrets.sh"
+echo "3. Apply the ArgoCD applications:"
+echo "   kubectl apply -f k8s/argocd/applications/monitoring-*.yaml"
+echo ""
+echo "ArgoCD will handle the deployment automatically."
 
 echo ""
 echo "Monitoring stack deployed successfully!"

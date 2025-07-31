@@ -1,80 +1,63 @@
-# Rinzler Grid Monitoring Dashboard
+# Rinzler Grid Monitoring
 
-## Architecture Overview
+## Overview
 
-A simple, self-contained monitoring dashboard that:
-1. **Backend API** - Polls service APIs and stores recent metrics in memory
-2. **Frontend Dashboard** - Real-time web UI with auto-refresh
-3. **No external dependencies** - No Prometheus, Grafana, or databases required
+Comprehensive monitoring solution using Prometheus and Grafana, managed by ArgoCD.
 
-## Monitored Services & Metrics
+## Components
 
-### Media Services
-- **Plex**
-  - Server status and capabilities
-  - Recently added media count
-  - Active streams
-  - Library statistics
-  
-- **Tautulli**
-  - Plex watch statistics
-  - User activity
+### Monitoring Stack
+- **Prometheus** - Metrics collection and storage
+- **Grafana** - Visualization and dashboards
+- **Node Exporter** - System metrics
+- **Exportarr** - Detailed *arr service metrics
+- **Tautulli Exporter** - Plex/Tautulli metrics
 
-### Arr Stack
-- **Radarr/Sonarr/Readarr/Lidarr**
-  - Health status (download client connectivity)
-  - Queue status
-  - Missing/wanted items
-  - Recent downloads
-  - Indexer status
-  
-- **Bazarr**
-  - Subtitle download statistics
-  - Provider health
+### Services Monitored
 
-### Download Services
-- **Transmission**
-  - Active torrents
-  - Download/upload speeds
-  - VPN connection status (via Gluetun)
-  
-- **Jackett**
-  - Indexer health
-  - Query statistics
+| Service | Metrics Source | Dashboard |
+|---------|---------------|-----------|
+| System/Hardware | Node Exporter | Import ID: 1860 |
+| Kubernetes | Prometheus | Import ID: 6417 |
+| ArgoCD | Native metrics | Import ID: 14584 |
+| Radarr/Sonarr/Lidarr | Exportarr | Custom dashboard |
+| Plex/Tautulli | Tautulli Exporter | Custom dashboard |
+| Traefik | Native metrics | Import ID: 11462 |
 
-### Infrastructure
-- **ArgoCD**
-  - Application sync status
-  - Repository connection health
-  - Out-of-sync applications
-  - Failed deployments
-  
-- **Traefik**
-  - Request statistics
-  - Service health
-  - Certificate status
+## Access
 
-## API Endpoints Summary
+- **Grafana**: http://grafana.rinzler.grid
+  - Username: admin
+  - Password: admin
 
-| Service | Health Endpoint | Auth Method |
-|---------|----------------|-------------|
-| Plex | `http://plex:32400/?X-Plex-Token=TOKEN` | X-Plex-Token |
-| Radarr | `http://radarr:7878/api/v3/health?apiKey=KEY` | API Key |
-| Sonarr | `http://sonarr:8989/api/v3/health?apiKey=KEY` | API Key |
-| ArgoCD | `http://argocd-server:8080/api/v1/session` | JWT Token |
-| Transmission | `http://transmission:9091/transmission/rpc` | Basic Auth |
+## ArgoCD Management
 
-## Implementation Plan
-
-1. Create monitoring namespace
-2. Deploy collector service with embedded dashboard
-3. Configure API credentials via secrets
-4. Access dashboard at http://monitoring.rinzler.grid
-
-## Deployment
+This monitoring stack is fully managed by ArgoCD:
 
 ```bash
-# Edit monitoring-secrets.yaml with your API keys
-# Then run:
-./build-and-deploy.sh
+# View monitoring applications
+kubectl get applications -n argocd | grep monitoring
+
+# Sync manually if needed
+kubectl patch application monitoring-base -n argocd --type merge \
+  -p '{"operation": {"initiatedBy": {"username": "admin"}, "sync": {}}}'
 ```
+
+## Adding API Keys
+
+All API keys are managed through the centralized secrets system:
+
+1. Edit `.env.secrets` in the repository root
+2. Run `./scripts/apply-secrets.sh`
+3. ArgoCD will automatically sync the changes
+
+## Custom Dashboards
+
+Pre-configured dashboards are available in the `dashboards/` directory:
+- `rinzler-services-dashboard.json` - Overall service health
+- `arr-services-dashboard.json` - Detailed *arr metrics
+
+To import:
+1. Go to Grafana → Dashboards → Import
+2. Upload the JSON file
+3. Select Prometheus as the data source
