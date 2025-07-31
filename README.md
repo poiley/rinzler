@@ -16,9 +16,11 @@ nano .env.secret
 # 3. Install K3s
 sudo ./scripts/k3s-install.sh
 
-# 4. Deploy services
-kubectl apply -f k8s/infrastructure/traefik/
-# ... continue with other services
+# 4. Install ArgoCD and deploy all services
+./scripts/install-argocd.sh
+
+# 5. Apply ArgoCD applications (deploys everything automatically)
+kubectl apply -f k8s/argocd/applications/
 ```
 
 ## 📚 Documentation

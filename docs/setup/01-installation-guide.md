@@ -60,14 +60,29 @@ sudo systemctl status k3s
 kubectl get nodes
 ```
 
-### 2. Deploy Traefik Ingress Controller
+### 2. Install ArgoCD for GitOps Management
+
+**What this does**: ArgoCD automatically deploys and manages all your services from this Git repository. No more manual kubectl commands!
+
 ```bash
-kubectl apply -f k8s/infrastructure/traefik/
+# Run the ArgoCD installation script
+./scripts/install-argocd.sh
 ```
-Verify:
+
+**The script will**:
+- Install ArgoCD in the 'argocd' namespace
+- Wait for ArgoCD to be ready
+- Configure access credentials
+- Display the admin password
+
+**Access ArgoCD UI** (optional but recommended):
 ```bash
-kubectl -n infrastructure get pods
-kubectl -n infrastructure get svc
+# Port-forward to access the UI
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+# Open https://localhost:8080 in your browser
+# Username: admin
+# Password: (displayed by the install script)
 ```
 
 ### 3. Configure DNS for .grid Domain
@@ -114,16 +129,41 @@ sudo nano /etc/hosts
 ping plex.rinzler.grid
 ```
 
-### 4. Deploy Infrastructure Services
-```bash
-# Deploy Pi-hole (if not using existing Docker version)
-kubectl apply -f k8s/network-services/pihole/
+### 4. Deploy All Services with ArgoCD
 
-# Deploy DuckDNS
-kubectl apply -f k8s/infrastructure/duckdns/
+**What this does**: Instead of manually applying each service, ArgoCD will automatically deploy and manage everything from your Git repository.
+
+```bash
+# Deploy all ArgoCD applications
+kubectl apply -f k8s/argocd/applications/
 ```
 
-### 5. Stop Docker Services (One at a Time)
+**This single command deploys**:
+- Infrastructure services (Traefik, DuckDNS)
+- Media services (Plex, Tautulli, Kavita)
+- Arr stack (Sonarr, Radarr, etc.)
+- Download services (Transmission, Jackett)
+- Network services (Pi-hole, Samba)
+- Home automation (Home Assistant)
+
+**Monitor deployments**:
+```bash
+# Watch all applications sync
+kubectl -n argocd get applications
+
+# Check sync status
+kubectl -n argocd get app -o wide
+```
+
+**Why ArgoCD?**
+- Automatic deployments from Git
+- Self-healing (fixes manual changes)
+- Easy rollbacks
+- No more kubectl commands needed!
+
+### 5. Verify Services and Stop Docker Containers
+
+**Important**: ArgoCD has already deployed all K8s services. Now verify they're working before stopping Docker.
 
 **Important**: Migrate services one at a time to minimize downtime and allow easy rollback.
 
@@ -134,9 +174,9 @@ kubectl apply -f k8s/infrastructure/duckdns/
    docker stop plex
    ```
 
-2. **Deploy the K8s version**:
+2. **Verify the K8s version is running** (deployed by ArgoCD):
    ```bash
-   kubectl apply -f k8s/media/plex/
+   kubectl -n media get pods | grep plex
    ```
 
 3. **Monitor the deployment**:
@@ -172,39 +212,30 @@ kubectl apply -f k8s/infrastructure/duckdns/
 
 **Repeat this process for each service**
 
-### 6. Deploy Services by Stack
+### 6. Managing Services with ArgoCD
 
-**Media Stack:**
+**All services are already deployed!** ArgoCD handles everything automatically.
+
+**Check service status**:
 ```bash
-kubectl apply -f k8s/media/plex/
-kubectl apply -f k8s/media/tautulli/
-kubectl apply -f k8s/media/kavita/
+# View all ArgoCD applications
+kubectl -n argocd get applications
+
+# Check specific stack
+kubectl -n argocd get app media
+kubectl -n argocd get app arr-stack
+kubectl -n argocd get app download
 ```
 
-**Arr Stack:**
-```bash
-kubectl apply -f k8s/arr-stack/sonarr/
-kubectl apply -f k8s/arr-stack/radarr/
-kubectl apply -f k8s/arr-stack/lidarr/
-kubectl apply -f k8s/arr-stack/readarr/
-kubectl apply -f k8s/arr-stack/bazarr/
-```
+**Make changes**:
+1. Edit the YAML files in this repository
+2. Commit and push to Git
+3. ArgoCD automatically applies changes!
 
-**Download Stack:**
+**Force sync if needed**:
 ```bash
-kubectl apply -f k8s/download/jackett/
-kubectl apply -f k8s/download/gluetun-transmission/
-kubectl apply -f k8s/download/mylar/
-```
-
-**Home Services:**
-```bash
-kubectl apply -f k8s/home/home-assistant/
-```
-
-**Network Services:**
-```bash
-kubectl apply -f k8s/network-services/samba/
+# Sync a specific application
+kubectl -n argocd patch app media --type merge -p '{"operation": {"initiatedBy": {"username": "admin"}, "sync": {"revision": "HEAD"}}}'
 ```
 
 ### 7. Verify Services
@@ -220,13 +251,23 @@ Access services via .grid URLs:
 - Sonarr: http://sonarr.rinzler.grid (no /sonarr suffix!)
 - etc.
 
-### 8. Deploy ArgoCD for GitOps
-```bash
-cd k8s/infrastructure/argocd
-./install-argocd.sh
-```
+### 8. Configure ArgoCD for Continuous Deployment
 
-Configure ArgoCD to watch this Git repository for automatic deployments.
+**ArgoCD is already installed and managing your services!**
+
+**To make future changes**:
+1. Edit YAML files in the `k8s/` directory
+2. Commit changes: `git commit -m "Update service X"`
+3. Push to repository: `git push`
+4. ArgoCD automatically detects and applies changes
+
+**Enable auto-sync** (optional):
+```bash
+# Enable automatic syncing for all apps
+for app in media arr-stack download infrastructure network-services home; do
+  kubectl -n argocd patch app $app --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
+done
+```
 
 ### 9. Monitor Resource Usage
 ```bash
@@ -258,11 +299,26 @@ If issues occur:
 
 ## Important Notes
 
+- **DO NOT USE kubectl apply DIRECTLY** - Let ArgoCD manage all deployments
 - All services use existing Docker volumes via hostPath - no data migration needed
 - Services are configured identically to Docker deployments
 - GPU support enabled for Plex transcoding
 - Clean URLs without suffixes (no more /sonarr, /radarr, etc.)
 - Can run K8s and Docker side-by-side during migration
+
+## GitOps Best Practices
+
+### \u2705 DO:
+- Make changes by editing YAML files and pushing to Git
+- Use ArgoCD UI to monitor sync status
+- Let ArgoCD handle all deployments
+- Use Git history for rollbacks
+
+### \u274c DON'T:
+- Run `kubectl apply -f k8s/service/` manually
+- Edit resources directly with `kubectl edit`
+- Delete resources with `kubectl delete` 
+- Make changes outside of Git
 
 ## Next Steps
 

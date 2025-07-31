@@ -38,13 +38,14 @@ mv ~/.env.secret .
 # Install K3s
 sudo ./scripts/k3s-install.sh
 
+# Install ArgoCD for GitOps management
+./scripts/install-argocd.sh
+
 # Apply the generated secrets
 kubectl apply -f k8s-generated/secrets/
 
-# Deploy services
-kubectl apply -f k8s/infrastructure/traefik/
-kubectl apply -f k8s/network-services/pihole/
-# ... continue with other services
+# Deploy ALL services with ArgoCD (one command!)
+kubectl apply -f k8s/argocd/applications/
 ```
 
 ## Complete Server Commands
@@ -72,21 +73,19 @@ sudo ./scripts/k3s-install.sh
 sleep 30
 kubectl wait --for=condition=Ready nodes --all --timeout=300s
 
+# Install ArgoCD
+./scripts/install-argocd.sh
+
 # Apply secrets first
 kubectl apply -f k8s-generated/secrets/
 
-# Deploy infrastructure
-kubectl apply -f k8s/infrastructure/traefik/
-kubectl apply -f k8s/network-services/pihole/
-
-# Deploy services
-kubectl apply -f k8s/media/
-kubectl apply -f k8s/arr-stack/
-kubectl apply -f k8s/download/
-kubectl apply -f k8s/home/
+# Deploy ALL services with ArgoCD
+kubectl apply -f k8s/argocd/applications/
 
 echo "Deployment complete!"
+echo "ArgoCD is now managing all services"
 echo "Configure DNS for .grid domain in Pi-hole"
+echo "Access ArgoCD at http://argocd.rinzler.grid"
 ```
 
 ## What Gets Committed vs What Doesn't
@@ -135,5 +134,41 @@ git check-ignore .env.secret
 
 Once `.env.secret` is on the server:
 ```bash
-cd rinzler && ./scripts/generate-secrets.sh && kubectl apply -f k8s-generated/secrets/ && kubectl apply -R -f k8s/
+cd rinzler && ./scripts/generate-secrets.sh && kubectl apply -f k8s-generated/secrets/ && kubectl apply -f k8s/argocd/applications/
+```
+
+## Why ArgoCD Instead of kubectl?
+
+### ❌ Old Way (Manual kubectl)
+- Run kubectl for each service
+- Easy to forget a service
+- No automatic updates
+- Manual rollbacks
+- No sync verification
+
+### ✅ New Way (ArgoCD GitOps)
+- One command deploys everything
+- Git commits trigger updates
+- Automatic sync from Git
+- Self-healing deployments
+- Easy rollbacks via Git
+- Visual UI for monitoring
+
+## Making Changes After Deployment
+
+**Never use kubectl to edit services!** Instead:
+
+1. Edit the YAML file in `k8s/`
+2. Commit and push to Git
+3. ArgoCD automatically applies changes
+
+Example:
+```bash
+# Update Plex memory limit
+vim k8s/media/plex/deployment.yaml
+git add -A
+git commit -m "Increase Plex memory to 4Gi"
+git push
+
+# ArgoCD detects and applies the change automatically!
 ```

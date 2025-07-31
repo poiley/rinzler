@@ -19,6 +19,7 @@ docs/
 - **[Repository Structure](reference/repository-structure.md)** - Project organization standards
 
 ## 🔧 Operations Documentation
+- **[ArgoCD Usage Guide](operations/argocd-usage.md)** - How to use ArgoCD for deployments (READ THIS!)
 - **[Secrets Management](operations/secrets-management.md)** - Handling secrets for public repos
 - **[Current Secrets](operations/current-secrets.md)** - Current secret values status
 

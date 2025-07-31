@@ -8,6 +8,10 @@
 5. **Managing secrets?** → Read [SECRETS-MANAGEMENT.md](SECRETS-MANAGEMENT.md)
 6. **Looking for docs?** → Browse [docs/README.md](docs/README.md)
 
+## ⚡ IMPORTANT: Use ArgoCD for ALL Changes!
+**Never use kubectl apply directly!** All deployments and changes should go through ArgoCD.
+See: [ArgoCD Usage Guide](../operations/argocd-usage.md)
+
 ## 🎯 Common Tasks
 
 ### "I want to install K3s"
@@ -34,13 +38,26 @@ See: [docs/traefik-networking.md](docs/traefik-networking.md)
 ### "I want to configure DNS"
 See: [docs/pihole-dns-setup.md](docs/pihole-dns-setup.md)
 
+### "I want to update a service"
+```bash
+# Edit the YAML file
+vim k8s/<namespace>/<service>/deployment.yaml
+
+# Commit and push to Git
+git add -A && git commit -m "Update service" && git push
+
+# ArgoCD automatically applies the change!
+```
+
 ### "I want to restart a service"
 ```bash
-# Restart a deployment
-kubectl rollout restart deployment/<service> -n <namespace>
+# Best practice: Update deployment to trigger restart
+vim k8s/<namespace>/<service>/deployment.yaml
+# Add/update an annotation like: kubectl.kubernetes.io/restartedAt: "2024-01-15T10:00:00Z"
+git add -A && git commit -m "Restart <service>" && git push
 
-# Or delete the pod to force recreation
-kubectl delete pod <pod-name> -n <namespace>
+# Emergency only (avoid this!):
+kubectl rollout restart deployment/<service> -n <namespace>
 ```
 
 ## 📁 Directory Map
@@ -54,6 +71,8 @@ rinzler/
 ├── QUICK-REFERENCE.md          # This file
 │
 ├── k8s/                        # Kubernetes configs
+│   ├── argocd/                 # ArgoCD applications (DEPLOY THESE!)
+│   │   └── applications/       # One file per service stack
 │   ├── media/                  # Plex, Tautulli, Kavita
 │   ├── arr-stack/              # Sonarr, Radarr, etc.
 │   ├── download/               # Transmission, Jackett
@@ -80,6 +99,7 @@ rinzler/
 - **Migration Strategy** → [docs/k3s-migration-strategy.md](docs/k3s-migration-strategy.md)
 - **Networking/Domains** → [docs/traefik-networking.md](docs/traefik-networking.md)
 - **GitOps/ArgoCD** → [docs/gitops-architecture.md](docs/gitops-architecture.md)
+- **HOW TO USE ARGOCD** → [docs/operations/argocd-usage.md](docs/operations/argocd-usage.md) ⭐
 
 ### By Service
 Each service has its configs in `k8s/<namespace>/<service>/`:
@@ -89,9 +109,10 @@ Each service has its configs in `k8s/<namespace>/<service>/`:
 - `pvc.yaml` - Storage (if using new volumes)
 
 ## ⚠️ Important Files
-- `k8s/*/deployment.yaml` - Service configurations
+- `k8s/argocd/applications/*.yaml` - ArgoCD apps (deploy these!)
+- `k8s/*/deployment.yaml` - Service configurations (edit these, push to Git)
 - `scripts/k3s-install.sh` - Installation script
-- `k8s/argocd/applicationsets/*.yaml` - ArgoCD app definitions
+- `scripts/install-argocd.sh` - ArgoCD installation
 
 ## 🆘 Troubleshooting
 

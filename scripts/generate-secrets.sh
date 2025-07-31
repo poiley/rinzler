@@ -19,25 +19,25 @@ if ! command -v envsubst &> /dev/null; then
 fi
 
 # Check for secret file
-if [ ! -f ".env.secret" ]; then
-    echo -e "${RED}Error: .env.secret file not found!${NC}"
+if [ ! -f ".env.secrets" ]; then
+    echo -e "${RED}Error: .env.secrets file not found!${NC}"
     echo -e "${YELLOW}Creating from example...${NC}"
     
-    if [ -f ".env.secret.example" ]; then
-        cp .env.secret.example .env.secret
-        echo -e "${GREEN}Created .env.secret from example${NC}"
-        echo -e "${YELLOW}Please edit .env.secret with your actual values and run this script again${NC}"
+    if [ -f ".env.secrets.example" ]; then
+        cp .env.secrets.example .env.secrets
+        echo -e "${GREEN}Created .env.secrets from example${NC}"
+        echo -e "${YELLOW}Please edit .env.secrets with your actual values and run this script again${NC}"
         exit 1
     else
-        echo -e "${RED}No .env.secret.example found!${NC}"
+        echo -e "${RED}No .env.secrets.example found!${NC}"
         exit 1
     fi
 fi
 
 # Source the secrets
-echo "Loading secrets from .env.secret..."
+echo "Loading secrets from .env.secrets..."
 set -a  # Export all variables
-source .env.secret
+source .env.secrets
 set +a
 
 # Validate required variables
@@ -137,6 +137,21 @@ stringData:
   advertise-ip: "${PLEX_ADVERTISE_IP:-}"
 EOF
     echo "✓ Generated plex-secret.yaml"
+fi
+
+# Grafana MCP Secret (if configured)
+if [ ! -z "${GRAFANA_API_KEY:-}" ]; then
+    cat > k8s-generated/secrets/grafana-mcp-secret.yaml << EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-mcp-secret
+  namespace: mcp-servers
+type: Opaque
+stringData:
+  api-key: "${GRAFANA_API_KEY}"
+EOF
+    echo "✓ Generated grafana-mcp-secret.yaml"
 fi
 
 echo -e "${GREEN}=== Secret generation complete! ===${NC}"
