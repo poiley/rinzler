@@ -17,12 +17,6 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: rinzler
-      securityContext:
-        sysctls:
-        - name: net.ipv4.conf.all.src_valid_mark
-          value: "1"
-        - name: net.ipv6.conf.all.disable_ipv6
-          value: "1"
       containers:
       # Gluetun VPN container
       - name: gluetun
