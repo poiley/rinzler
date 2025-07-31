@@ -16,3 +16,6 @@ secrets/
 !.env.secret.example
 !*-template.yaml
 !*-secret-template.yaml
+# Secret files
+.env.secret
+k8s-generated/
