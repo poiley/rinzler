@@ -26,7 +26,8 @@ spec:
         - |
           cd /home/node
           npm install mcp-server-kubernetes
-          npx mcp-server-kubernetes --transport sse --port 3000
+          # Keep the process running
+          exec npx mcp-server-kubernetes --transport sse --port 3000
         ports:
         - containerPort: 3000
           name: http

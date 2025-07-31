@@ -33,10 +33,13 @@ spec:
           cd mcp-proxy
           npm install
           
+          # Build mcp-proxy
+          npm run build
+          
           # Install k8s-mcp-server in virtual environment
           python3 -m venv /opt/venv
           source /opt/venv/bin/activate
-          pip install k8s-mcp-server
+          pip install mcp-server-k8s
           
           # Configure servers
           cat > servers.json << 'EOF'
@@ -44,7 +47,7 @@ spec:
             "mcpServers": {
               "k8s": {
                 "enabled": true,
-                "command": "/opt/venv/bin/k8s-mcp-server",
+                "command": "/opt/venv/bin/mcp-server-k8s",
                 "args": [],
                 "env": {
                   "ALLOWED_COMMANDS": "kubectl,helm,argocd",

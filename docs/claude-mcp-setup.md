@@ -78,15 +78,19 @@ Or configure DNS to use PiHole at `192.168.1.227`.
 nslookup kubernetes-mcp.rinzler.grid
 ```
 
-2. Test HTTP connectivity:
+2. Test SSE endpoints directly (ignore 404/503 on root path):
 ```bash
-curl -I http://kubernetes-mcp.rinzler.grid
+# Grafana MCP (should return 200 and event stream data)
+curl -N -H "Accept: text/event-stream" http://grafana-mcp.rinzler.grid/sse
+
+# Kubernetes MCP (should return some response)
+curl -N -H "Accept: text/event-stream" http://kubernetes-mcp.rinzler.grid/sse
+
+# K8s stdio proxy (when available)
+curl -N -H "Accept: text/event-stream" http://k8s-stdio.rinzler.grid/servers/k8s/sse
 ```
 
-3. Test SSE endpoint:
-```bash
-curl -N -H "Accept: text/event-stream" http://kubernetes-mcp.rinzler.grid/sse
-```
+Note: Root path (/) may return 404 or 503 - this is normal. The SSE endpoints are what matter.
 
 ## Usage in Claude
 
