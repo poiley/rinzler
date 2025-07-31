@@ -139,20 +139,6 @@ EOF
     echo "✓ Generated plex-secret.yaml"
 fi
 
-# Grafana MCP Secret (if configured)
-if [ ! -z "${GRAFANA_API_KEY:-}" ]; then
-    cat > k8s-generated/secrets/grafana-mcp-secret.yaml << EOF
-apiVersion: v1
-kind: Secret
-metadata:
-  name: grafana-mcp-secret
-  namespace: mcp-servers
-type: Opaque
-stringData:
-  api-key: "${GRAFANA_API_KEY}"
-EOF
-    echo "✓ Generated grafana-mcp-secret.yaml"
-fi
 
 echo -e "${GREEN}=== Secret generation complete! ===${NC}"
 echo ""
