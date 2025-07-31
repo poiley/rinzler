@@ -1,0 +1,16 @@
+# Rinzler Grid Services - Add to /etc/hosts
+192.168.1.227 k8s-mcp.rinzler.grid
+192.168.1.227 grafana-mcp.rinzler.grid
+192.168.1.227 argocd.rinzler.grid
+192.168.1.227 grafana.rinzler.grid
+192.168.1.227 pihole.rinzler.grid
+192.168.1.227 plex.rinzler.grid
+192.168.1.227 sonarr.rinzler.grid
+192.168.1.227 radarr.rinzler.grid
+192.168.1.227 bazarr.rinzler.grid
+192.168.1.227 lidarr.rinzler.grid
+192.168.1.227 jackett.rinzler.grid
+192.168.1.227 transmission.rinzler.grid
+192.168.1.227 kavita.rinzler.grid
+192.168.1.227 tautulli.rinzler.grid
+192.168.1.227 mylar.rinzler.grid

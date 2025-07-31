@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubernetes-mcp
+  namespace: mcp-servers
+  labels:
+    app: kubernetes-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubernetes-mcp
+  template:
+    metadata:
+      labels:
+        app: kubernetes-mcp
+    spec:
+      serviceAccountName: k8s-mcp-server  # Reuse existing RBAC
+      containers:
+      - name: kubernetes-mcp
+        image: node:20-alpine
+        imagePullPolicy: IfNotPresent
+        command: 
+        - sh
+        - -c
+        - |
+          cd /home/node
+          npm install mcp-server-kubernetes
+          npx mcp-server-kubernetes --transport sse --port 3000
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: PORT
+          value: "3000"
+        - name: LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
