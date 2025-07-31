@@ -45,18 +45,6 @@ spec:
         - name: config
           mountPath: /app
           readOnly: true
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: http
-          initialDelaySeconds: 5
-          periodSeconds: 10
       volumes:
       - name: config
         configMap:
