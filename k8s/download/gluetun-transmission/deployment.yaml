@@ -31,9 +31,15 @@ spec:
         - name: VPN_TYPE
           value: "wireguard"
         - name: WIREGUARD_PRIVATE_KEY
-          value: "EKHPK+3TEeDhyOJ0QQfogjHtb4XJYoHoPsH7RAEehnE="
+          valueFrom:
+            secretKeyRef:
+              name: mullvad-secrets
+              key: private-key
         - name: WIREGUARD_ADDRESSES
-          value: "10.64.197.249/32"
+          valueFrom:
+            secretKeyRef:
+              name: mullvad-secrets
+              key: addresses
         - name: SERVER_CITIES
           value: "Seattle WA"
         - name: SERVER_COUNTRIES
