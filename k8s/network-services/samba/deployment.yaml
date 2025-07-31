@@ -20,6 +20,12 @@ spec:
       containers:
       - name: samba
         image: dperson/samba:latest
+        command: ["/bin/sh"]
+        args: 
+        - -c
+        - |
+          mkdir -p /var/lib/samba/private
+          exec /usr/bin/samba.sh
         env:
         - name: TZ
           value: "America/Los_Angeles"
