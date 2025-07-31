@@ -17,21 +17,6 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: rinzler
-      initContainers:
-      - name: configure-radarr
-        image: alpine:latest
-        command: ["/scripts/configure-radarr.sh"]
-        env:
-        - name: JACKETT_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: arr-config-secrets
-              key: jackett-api-key
-        volumeMounts:
-        - name: config
-          mountPath: /config
-        - name: config-scripts
-          mountPath: /scripts
       containers:
       - name: radarr
         image: lscr.io/linuxserver/radarr:latest
@@ -74,7 +59,3 @@ spec:
         hostPath:
           path: /storage/downloads
           type: Directory
-      - name: config-scripts
-        configMap:
-          name: arr-config-scripts
-          defaultMode: 0755

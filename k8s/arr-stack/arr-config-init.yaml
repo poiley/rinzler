@@ -5,7 +5,7 @@ metadata:
   namespace: arr-stack
 data:
   configure-radarr.sh: |
-    #!/bin/bash
+    #!/bin/sh
     set -e
     
     # Wait for Radarr to initialize its database
@@ -17,8 +17,8 @@ data:
     # Wait a bit more to ensure database is fully initialized
     sleep 10
     
-    # Install sqlite3 if not present
-    apk add --no-cache sqlite3
+    # Install sqlite if not present
+    apk add --no-cache sqlite
     
     # Configure Transmission download client
     echo "Configuring Transmission download client..."
@@ -77,7 +77,7 @@ data:
     echo "Configuration complete!"
 
   configure-sonarr.sh: |
-    #!/bin/bash
+    #!/bin/sh
     set -e
     
     # Wait for Sonarr to initialize its database
@@ -89,8 +89,8 @@ data:
     # Wait a bit more to ensure database is fully initialized
     sleep 10
     
-    # Install sqlite3 if not present
-    apk add --no-cache sqlite3
+    # Install sqlite if not present
+    apk add --no-cache sqlite
     
     # Configure Transmission download client
     echo "Configuring Transmission download client..."
@@ -154,7 +154,7 @@ data:
     echo "Configuration complete!"
 
   configure-lidarr.sh: |
-    #!/bin/bash
+    #!/bin/sh
     set -e
     
     # Wait for Lidarr to initialize its database
@@ -166,8 +166,8 @@ data:
     # Wait a bit more to ensure database is fully initialized
     sleep 10
     
-    # Install sqlite3 if not present
-    apk add --no-cache sqlite3
+    # Install sqlite if not present
+    apk add --no-cache sqlite
     
     # Configure Transmission download client
     echo "Configuring Transmission download client..."
