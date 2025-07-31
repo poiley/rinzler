@@ -14,10 +14,10 @@ spec:
     helm:
       values: |
         grafana:
-          apiKeySecret:
-            name: grafana-mcp-secret
-            key: api-key
           url: "http://grafana.monitoring.svc.cluster.local:3000"
+          apiKeySecret:
+            name: "grafana-mcp-secret"
+            key: "api-key"
         
         service:
           type: ClusterIP
