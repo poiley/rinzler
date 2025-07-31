@@ -14,8 +14,9 @@ spec:
     helm:
       values: |
         grafana:
-          existingSecret: grafana-mcp-secret
-          existingSecretKey: api-key
+          apiKeySecret:
+            name: grafana-mcp-secret
+            key: api-key
           url: "http://grafana.monitoring.svc.cluster.local:3000"
         
         service:
