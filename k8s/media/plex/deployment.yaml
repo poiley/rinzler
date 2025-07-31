@@ -85,7 +85,6 @@ spec:
           mountPath: /transcode
         resources:
           limits:
-            nvidia.com/gpu: 1
             memory: 3Gi
           requests:
             cpu: 500m
