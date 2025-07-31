@@ -46,8 +46,7 @@ spec:
           value: "America/Los_Angeles"
         - name: DOT
           value: "on"
-        - name: DNS_ADDRESS
-          value: "100.64.0.63"
+        # Let gluetun use its default DNS configuration
         - name: FIREWALL_OUTBOUND_SUBNETS
           value: "192.168.1.0/24"  # Allow local network access
         - name: FIREWALL_INPUT_PORTS
@@ -106,8 +105,8 @@ spec:
         emptyDir: {}
       - name: transmission-config
         hostPath:
-          path: /var/lib/docker/volumes/transmission_data/_data
-          type: Directory
+          path: /storage/docker_volumes/transmission
+          type: DirectoryOrCreate
       - name: media
         hostPath:
           path: /storage/media
