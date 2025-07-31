@@ -17,14 +17,22 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: rinzler
+      securityContext:
+        sysctls:
+        - name: net.ipv4.conf.all.src_valid_mark
+          value: "1"
+        - name: net.ipv6.conf.all.disable_ipv6
+          value: "1"
       containers:
       # Gluetun VPN container
       - name: gluetun
         image: qmcgaw/gluetun
         securityContext:
+          privileged: true
           capabilities:
             add:
               - NET_ADMIN
+              - SYS_MODULE
         env:
         - name: VPN_SERVICE_PROVIDER
           value: "mullvad"
@@ -83,6 +91,10 @@ spec:
       # Transmission container
       - name: transmission
         image: linuxserver/transmission
+        # Share the network namespace with gluetun
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
         env:
         - name: PUID
           value: "1000"
