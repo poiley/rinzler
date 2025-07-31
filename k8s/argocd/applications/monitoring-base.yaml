@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/bpoile/rinzler
+    repoURL: https://github.com/poiley/rinzler
     targetRevision: HEAD
     path: k8s/monitoring/base
   destination:

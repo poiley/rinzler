@@ -17,7 +17,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/bpoile/rinzler
+        repoURL: https://github.com/poiley/rinzler
         targetRevision: HEAD
         path: '{{path}}'
       destination:
