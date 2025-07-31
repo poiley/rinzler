@@ -34,15 +34,14 @@ See: [docs/traefik-networking.md](docs/traefik-networking.md)
 ### "I want to configure DNS"
 See: [docs/pihole-dns-setup.md](docs/pihole-dns-setup.md)
 
-### "I want to rollback a service"
+### "I want to restart a service"
 ```bash
-# Stop K8s version
-kubectl delete -f k8s/<namespace>/<service>/
+# Restart a deployment
+kubectl rollout restart deployment/<service> -n <namespace>
 
-# Restart Docker version
-docker start <container-name>
+# Or delete the pod to force recreation
+kubectl delete pod <pod-name> -n <namespace>
 ```
-See: [01-installation-guide.md](01-installation-guide.md) Section 5
 
 ## 📁 Directory Map
 
@@ -72,8 +71,6 @@ rinzler/
 │   ├── *-strategy.md          # Planning docs
 │   └── *.md                   # Config guides
 │
-└── compose/                    # Original Docker files
-    └── docker-compose.*.yml    # For reference only
 ```
 
 ## 🔍 Finding Information
@@ -92,9 +89,9 @@ Each service has its configs in `k8s/<namespace>/<service>/`:
 - `pvc.yaml` - Storage (if using new volumes)
 
 ## ⚠️ Important Files
-- `.env` - Docker environment variables (reference)
 - `k8s/*/deployment.yaml` - Service configurations
 - `scripts/k3s-install.sh` - Installation script
+- `k8s/argocd/applicationsets/*.yaml` - ArgoCD app definitions
 
 ## 🆘 Troubleshooting
 
