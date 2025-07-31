@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: media
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - service: plex
+      - service: kavita
+      - service: tautulli
+  template:
+    metadata:
+      name: '{{service}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/poiley/rinzler.git
+        targetRevision: HEAD
+        path: 'k8s/media/{{service}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: media
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true

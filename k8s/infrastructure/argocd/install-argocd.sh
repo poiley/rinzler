@@ -35,7 +35,7 @@ metadata:
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   rules:
-  - host: argocd.rinzler.local
+  - host: argocd.rinzler.grid
     http:
       paths:
       - path: /
@@ -54,9 +54,8 @@ echo "Access ArgoCD:"
 echo "1. Port forward: kubectl port-forward svc/argocd-server -n argocd 8080:443"
 echo "   Then visit: https://localhost:8080"
 echo ""
-echo "2. Or add to /etc/hosts:"
-echo "   192.168.1.227 argocd.rinzler.local"
-echo "   Then visit: http://argocd.rinzler.local"
+echo "2. Or visit directly (DNS already configured):"
+echo "   http://argocd.rinzler.grid"
 echo ""
 echo "Login with:"
 echo "  Username: admin"

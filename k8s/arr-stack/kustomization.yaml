@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: arr-stack
+
+resources:
+  - namespace.yaml
+  - arr-config-secret.yaml
+  - arr-config-init.yaml
+  # Radarr
+  - radarr/deployment.yaml
+  - radarr/service.yaml
+  - radarr/ingress.yaml
+  # Sonarr
+  - sonarr/deployment.yaml
+  - sonarr/service.yaml
+  - sonarr/ingress.yaml
+  # Lidarr
+  - lidarr/deployment.yaml
+  - lidarr/service.yaml
+  - lidarr/ingress.yaml
+  # Readarr
+  - readarr/deployment.yaml
+  - readarr/service.yaml
+  - readarr/ingress.yaml
+  # Bazarr
+  - bazarr/deployment.yaml
+  - bazarr/service.yaml
+  - bazarr/ingress.yaml

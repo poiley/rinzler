@@ -1,0 +1,228 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arr-config-scripts
+  namespace: arr-stack
+data:
+  configure-radarr.sh: |
+    #!/bin/bash
+    set -e
+    
+    # Wait for Radarr to initialize its database
+    echo "Waiting for Radarr database to be created..."
+    while [ ! -f /config/radarr.db ]; do
+      sleep 5
+    done
+    
+    # Wait a bit more to ensure database is fully initialized
+    sleep 10
+    
+    # Install sqlite3 if not present
+    apk add --no-cache sqlite3
+    
+    # Configure Transmission download client
+    echo "Configuring Transmission download client..."
+    sqlite3 /config/radarr.db <<EOF
+    INSERT OR REPLACE INTO DownloadClients (Enable, Name, Implementation, Settings, ConfigContract, Priority, Tags)
+    VALUES (
+      1,
+      'Transmission',
+      'Transmission',
+      '{
+        "host": "transmission.download.svc.cluster.local",
+        "port": 9091,
+        "urlBase": "/transmission/",
+        "useSsl": false,
+        "username": "",
+        "password": "",
+        "category": "radarr",
+        "priority": "last",
+        "addPaused": false,
+        "initialState": 0,
+        "removeCompletedDownloads": true,
+        "removeFailedDownloads": true
+      }',
+      'TransmissionSettings',
+      1,
+      '[]'
+    );
+    EOF
+    
+    # Configure Jackett indexer
+    echo "Configuring Jackett indexer..."
+    sqlite3 /config/radarr.db <<EOF
+    INSERT OR REPLACE INTO Indexers (Enable, Name, Implementation, Settings, ConfigContract, Priority, Tags)
+    VALUES (
+      1,
+      'Jackett',
+      'Torznab',
+      '{
+        "baseUrl": "http://jackett.download.svc.cluster.local:9117",
+        "apiPath": "/api",
+        "apiKey": "'$JACKETT_API_KEY'",
+        "categories": [2000, 2010, 2020, 2030, 2040, 2045, 2050, 2060],
+        "animeCategories": [],
+        "removeYear": false,
+        "searchByTitle": false,
+        "minimumSeeders": 1,
+        "seedCriteria": {},
+        "requiredFlags": []
+      }',
+      'TorznabSettings',
+      1,
+      '[]'
+    );
+    EOF
+    
+    echo "Configuration complete!"
+
+  configure-sonarr.sh: |
+    #!/bin/bash
+    set -e
+    
+    # Wait for Sonarr to initialize its database
+    echo "Waiting for Sonarr database to be created..."
+    while [ ! -f /config/sonarr.db ]; do
+      sleep 5
+    done
+    
+    # Wait a bit more to ensure database is fully initialized
+    sleep 10
+    
+    # Install sqlite3 if not present
+    apk add --no-cache sqlite3
+    
+    # Configure Transmission download client
+    echo "Configuring Transmission download client..."
+    sqlite3 /config/sonarr.db <<EOF
+    INSERT OR REPLACE INTO DownloadClients (Enable, Name, Implementation, Settings, ConfigContract, Priority, Tags)
+    VALUES (
+      1,
+      'Transmission',
+      'Transmission',
+      '{
+        "host": "transmission.download.svc.cluster.local",
+        "port": 9091,
+        "urlBase": "/transmission/",
+        "useSsl": false,
+        "username": "",
+        "password": "",
+        "tvCategory": "sonarr",
+        "tvDirectory": null,
+        "recentTvPriority": "last",
+        "olderTvPriority": "last",
+        "addPaused": false,
+        "removeCompletedDownloads": true,
+        "removeFailedDownloads": true
+      }',
+      'TransmissionSettings',
+      1,
+      '[]'
+    );
+    EOF
+    
+    # Configure Jackett indexer
+    echo "Configuring Jackett indexer..."
+    sqlite3 /config/sonarr.db <<EOF
+    INSERT OR REPLACE INTO Indexers (Enable, Name, Implementation, Settings, ConfigContract, Priority, Tags, EnableRss, EnableAutomaticSearch, EnableInteractiveSearch)
+    VALUES (
+      1,
+      'Jackett',
+      'Torznab',
+      '{
+        "baseUrl": "http://jackett.download.svc.cluster.local:9117",
+        "apiPath": "/api",
+        "apiKey": "'$JACKETT_API_KEY'",
+        "categories": [5000, 5030, 5040],
+        "animeCategories": [5070],
+        "animeStandardFormatSearch": false,
+        "removeYear": false,
+        "searchByTitle": false,
+        "minimumSeeders": 1,
+        "seedCriteria": {},
+        "requiredFlags": []
+      }',
+      'TorznabSettings',
+      1,
+      '[]',
+      1,
+      1,
+      1
+    );
+    EOF
+    
+    echo "Configuration complete!"
+
+  configure-lidarr.sh: |
+    #!/bin/bash
+    set -e
+    
+    # Wait for Lidarr to initialize its database
+    echo "Waiting for Lidarr database to be created..."
+    while [ ! -f /config/lidarr.db ]; do
+      sleep 5
+    done
+    
+    # Wait a bit more to ensure database is fully initialized
+    sleep 10
+    
+    # Install sqlite3 if not present
+    apk add --no-cache sqlite3
+    
+    # Configure Transmission download client
+    echo "Configuring Transmission download client..."
+    sqlite3 /config/lidarr.db <<EOF
+    INSERT OR REPLACE INTO DownloadClients (Enable, Name, Implementation, Settings, ConfigContract, Priority, Tags)
+    VALUES (
+      1,
+      'Transmission',
+      'Transmission',
+      '{
+        "host": "transmission.download.svc.cluster.local",
+        "port": 9091,
+        "urlBase": "/transmission/",
+        "useSsl": false,
+        "username": "",
+        "password": "",
+        "musicCategory": "lidarr",
+        "musicDirectory": null,
+        "priority": "last",
+        "addPaused": false,
+        "removeCompletedDownloads": true,
+        "removeFailedDownloads": true
+      }',
+      'TransmissionSettings',
+      1,
+      '[]'
+    );
+    EOF
+    
+    # Configure Jackett indexer
+    echo "Configuring Jackett indexer..."
+    sqlite3 /config/lidarr.db <<EOF
+    INSERT OR REPLACE INTO Indexers (Enable, Name, Implementation, Settings, ConfigContract, Priority, Tags, EnableRss, EnableAutomaticSearch, EnableInteractiveSearch)
+    VALUES (
+      1,
+      'Jackett',
+      'Torznab',
+      '{
+        "baseUrl": "http://jackett.download.svc.cluster.local:9117",
+        "apiPath": "/api",
+        "apiKey": "'$JACKETT_API_KEY'",
+        "categories": [3000, 3010, 3020, 3030, 3040],
+        "removeYear": false,
+        "searchByTitle": false,
+        "minimumSeeders": 1,
+        "seedCriteria": {},
+        "requiredFlags": []
+      }',
+      'TorznabSettings',
+      1,
+      '[]',
+      1,
+      1,
+      1
+    );
+    EOF
+    
+    echo "Configuration complete!"

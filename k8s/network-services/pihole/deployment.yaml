@@ -17,6 +17,15 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: rinzler
+      initContainers:
+      - name: copy-configs
+        image: busybox:latest
+        command: ['sh', '-c', 'cp /config/* /etc-dnsmasq/ 2>/dev/null || true']
+        volumeMounts:
+        - name: dnsmasq-config
+          mountPath: /config
+        - name: etc-dnsmasq
+          mountPath: /etc-dnsmasq
       containers:
       - name: pihole
         image: pihole/pihole:latest
@@ -29,6 +38,8 @@ spec:
           value: "0/0"  # From .env.example
         - name: PIHOLE_DNS_
           value: "8.8.8.8;8.8.4.4"
+        - name: FTLCONF_misc_etc_dnsmasq_d
+          value: "true"
         ports:
         - containerPort: 53
           name: dns-tcp
@@ -70,3 +81,6 @@ spec:
         hostPath:
           path: /storage/docker_volumes/pihole/etc-dnsmasq.d
           type: Directory
+      - name: dnsmasq-config
+        configMap:
+          name: pihole-dnsmasq

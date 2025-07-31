@@ -1,0 +1,257 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-server
+  namespace: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: argocd-server
+  template:
+    metadata:
+      labels:
+        app: argocd-server
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: argocd-server
+        image: quay.io/argoproj/argocd:v2.11.7
+        command: 
+        - argocd-server
+        - --insecure
+        ports:
+        - containerPort: 8080
+          name: server
+        - containerPort: 8083
+          name: metrics
+        env:
+        - name: ARGOCD_SERVER_INSECURE
+          value: "true"
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+        - name: ssh-known-hosts
+          mountPath: /app/config/ssh
+        - name: tls-certs
+          mountPath: /app/config/tls
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+      volumes:
+      - name: config
+        configMap:
+          name: argocd-cm
+      - name: ssh-known-hosts
+        configMap:
+          name: argocd-ssh-known-hosts-cm
+      - name: tls-certs
+        configMap:
+          name: argocd-tls-certs-cm
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: argocd-repo-server
+  template:
+    metadata:
+      labels:
+        app: argocd-repo-server
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: argocd-repo-server
+        image: quay.io/argoproj/argocd:v2.11.7
+        command: 
+        - argocd-repo-server
+        env:
+        - name: ARGOCD_REPO_SERVER_DISABLE_TLS
+          value: "true"
+        ports:
+        - containerPort: 8081
+          name: repo-server
+        - containerPort: 8084
+          name: metrics
+        volumeMounts:
+        - name: ssh-known-hosts
+          mountPath: /app/config/ssh
+        - name: tls-certs
+          mountPath: /app/config/tls
+        - name: gpg-keys
+          mountPath: /app/config/gpg/source
+        - name: gpg-keyring
+          mountPath: /app/config/gpg/keys
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+      volumes:
+      - name: ssh-known-hosts
+        configMap:
+          name: argocd-ssh-known-hosts-cm
+      - name: tls-certs
+        configMap:
+          name: argocd-tls-certs-cm
+      - name: gpg-keys
+        configMap:
+          name: argocd-gpg-keys-cm
+      - name: gpg-keyring
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-redis
+  namespace: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: argocd-redis
+  template:
+    metadata:
+      labels:
+        app: argocd-redis
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-dex-server
+  namespace: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: argocd-dex-server
+  template:
+    metadata:
+      labels:
+        app: argocd-dex-server
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      serviceAccountName: argocd-dex-server
+      containers:
+      - name: dex
+        image: ghcr.io/dexidp/dex:v2.38.0
+        command: 
+        - /shared/argocd-dex
+        - rundex
+        ports:
+        - containerPort: 5556
+          name: http
+        - containerPort: 5557
+          name: grpc
+        - containerPort: 5558
+          name: metrics
+        volumeMounts:
+        - name: static-files
+          mountPath: /shared
+        - name: dexconfig
+          mountPath: /tmp
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+      initContainers:
+      - name: copyutil
+        image: quay.io/argoproj/argocd:v2.11.7
+        command: 
+        - cp
+        - -n
+        - /usr/local/bin/argocd
+        - /shared/argocd-dex
+        volumeMounts:
+        - name: static-files
+          mountPath: /shared
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+      volumes:
+      - name: static-files
+        emptyDir: {}
+      - name: dexconfig
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: argocd-application-controller
+  namespace: argocd
+spec:
+  serviceName: argocd-application-controller
+  replicas: 1
+  selector:
+    matchLabels:
+      app: argocd-application-controller
+  template:
+    metadata:
+      labels:
+        app: argocd-application-controller
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: rinzler
+      serviceAccountName: argocd-application-controller
+      containers:
+      - name: argocd-application-controller
+        image: quay.io/argoproj/argocd:v2.11.7
+        command: 
+        - argocd-application-controller
+        ports:
+        - containerPort: 8082
+          name: metrics
+        env:
+        - name: ARGOCD_RECONCILIATION_TIMEOUT
+          value: "180s"
+        - name: ARGOCD_HARD_RECONCILIATION_TIMEOUT
+          value: "0s"
+        - name: ARGOCD_SELF_HEAL_TIMEOUT_SECONDS
+          value: "5"
+        volumeMounts:
+        - name: argocd-home
+          mountPath: /home/argocd
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+      volumes:
+      - name: argocd-home
+        emptyDir: {}

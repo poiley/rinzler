@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: download
+
+resources:
+  # Gluetun with Transmission VPN
+  - gluetun-transmission/deployment.yaml
+  - gluetun-transmission/service.yaml
+  - gluetun-transmission/ingress.yaml
+  # Jackett
+  - jackett/deployment.yaml
+  - jackett/service.yaml
+  - jackett/ingress.yaml
+  # FlareSolverr
+  - flaresolverr/deployment.yaml
+  - flaresolverr/service.yaml
+  # FMD2
+  - fmd2/deployment.yaml
+  - fmd2/service.yaml
+  - fmd2/ingress.yaml
+  # Mylar
+  - mylar/deployment.yaml
+  - mylar/service.yaml
+  - mylar/ingress.yaml

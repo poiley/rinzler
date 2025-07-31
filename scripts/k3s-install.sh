@@ -30,20 +30,20 @@ else
     exit 1
 fi
 
-# Check if k3s already installed
-if command -v k3s &> /dev/null; then
-    echo "⚠️  k3s is already installed. Remove it first with:"
-    echo "  sudo /usr/local/bin/k3s-uninstall.sh"
-    exit 1
-fi
+# # Check if k3s already installed
+# if command -v k3s &> /dev/null; then
+#     echo "⚠️  k3s is already installed. Remove it first with:"
+#     echo "  sudo /usr/local/bin/k3s-uninstall.sh"
+#     exit 1
+# fi
 
 echo ""
 echo "=== Installing k3s ==="
 
 # Install k3s with traefik included
 # With write-kubeconfig-mode for non-root access
-curl -sfL https://get.k3s.io | sh -s - \
-    --write-kubeconfig-mode 644
+#curl -sfL https://get.k3s.io | sh -s - \
+#    --write-kubeconfig-mode 644
 
 echo ""
 echo "=== Configuring kubectl access ==="

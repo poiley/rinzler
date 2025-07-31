@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-dnsmasq
+  namespace: network-services
+data:
+  04-rinzler-grid.conf: |
+    # Wildcard DNS for rinzler.grid services
+    address=/rinzler.grid/192.168.1.227
+  05-pihole-custom.conf: |
+    # Enable loading of dnsmasq.d directory
+    # This is set via environment variable instead

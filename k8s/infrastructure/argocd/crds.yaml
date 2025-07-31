@@ -1,0 +1,15 @@
+# This file will contain ArgoCD CRDs
+# In production, we should download these from the official ArgoCD repo
+# For now, we'll apply them directly from the upstream
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-crds-placeholder
+  namespace: argocd
+data:
+  note: |
+    ArgoCD CRDs should be applied from:
+    kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/application-crd.yaml
+    kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/applicationset-crd.yaml
+    kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/appproject-crd.yaml
