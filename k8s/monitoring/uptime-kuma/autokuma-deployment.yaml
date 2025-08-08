@@ -54,6 +54,8 @@ spec:
           readOnly: true
         - name: data
           mountPath: /data
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
         resources:
           requests:
             memory: "64Mi"
@@ -68,3 +70,5 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: autokuma-pvc
+      - name: docker-sock
+        emptyDir: {}
