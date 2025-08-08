@@ -131,11 +131,11 @@ curl -X GET "https://api.cloudflare.com/client/v4/user/tokens/verify" \
 
 ### Update the secret with your API token:
 ```bash
-# Edit k8s/cert-manager/issuers/letsencrypt-dns-prod.yaml
+# Edit k8s/cert-manager/issuers/letsencrypt-dns.yaml
 # Replace YOUR-CLOUDFLARE-API-TOKEN with actual token
 # Replace your-email@example.com with your email
 
-kubectl apply -f k8s/cert-manager/issuers/letsencrypt-dns-prod.yaml
+kubectl apply -f k8s/cert-manager/issuers/letsencrypt-dns.yaml
 ```
 
 ## Step 3: Update Ingresses

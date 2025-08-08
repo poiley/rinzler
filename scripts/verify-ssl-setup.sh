@@ -137,7 +137,7 @@ if kubectl get clusterissuer letsencrypt-dns-prod >/dev/null 2>&1; then
     echo -e "${GREEN}✓ Let's Encrypt issuer configured${NC}"
 else
     echo -e "${YELLOW}⚠ Let's Encrypt issuer not configured yet${NC}"
-    echo "  Run: kubectl apply -f k8s/cert-manager/issuers/letsencrypt-dns-prod.yaml"
+    echo "  Run: kubectl apply -f k8s/cert-manager/issuers/letsencrypt-dns.yaml"
     all_good=false
 fi
 
