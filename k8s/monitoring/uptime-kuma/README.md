@@ -42,7 +42,7 @@ This deployment includes:
    
 4. All monitors are automatically configured by AutoKuma!
 
-**Important**: Change the default password after first login or update `autokuma-secret.yaml` before deployment.
+**Important**: Change the default password after first login or update `autokuma-auth.yaml` before deployment.
 
 ### Monitoring Targets
 Suggested services to monitor:
