@@ -14,18 +14,6 @@ spec:
         app: autokuma
     spec:
       initContainers:
-      - name: create-docker-sock
-        image: busybox:1.36
-        command:
-        - sh
-        - -c
-        - |
-          echo "Creating dummy Docker socket..."
-          touch /var/run/docker.sock
-          echo "Dummy socket created"
-        volumeMounts:
-        - name: docker-sock
-          mountPath: /var/run
       - name: wait-for-uptime-kuma
         image: busybox:1.36
         command:
@@ -58,8 +46,8 @@ spec:
               key: admin-password
         - name: AUTOKUMA__STATIC_MONITORS
           value: "/monitors"
-        - name: AUTOKUMA__DOCKER__HOSTS
-          value: ""
+        - name: AUTOKUMA__DOCKER__ENABLED
+          value: "false"
         - name: RUST_LOG
           value: "debug"
         - name: AUTOKUMA__LOG_LEVEL
@@ -70,8 +58,6 @@ spec:
           readOnly: true
         - name: data
           mountPath: /data
-        - name: docker-sock
-          mountPath: /var/run
         resources:
           requests:
             memory: "512Mi"
@@ -86,5 +72,3 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: autokuma-pvc
-      - name: docker-sock
-        emptyDir: {}
