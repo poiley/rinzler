@@ -15,4 +15,3 @@ resources:
   - autokuma-auth.yaml
   - autokuma-monitors-configmap.yaml
   - autokuma-deployment.yaml
-  - setup-admin-job.yaml

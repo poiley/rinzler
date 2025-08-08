@@ -13,6 +13,56 @@ spec:
       labels:
         app: uptime-kuma
     spec:
+      initContainers:
+      - name: init-admin
+        image: louislam/uptime-kuma:1.23.15
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+          echo "Starting temporary Uptime Kuma to initialize database..."
+          
+          # Start Uptime Kuma in background to create database schema
+          node server/server.js &
+          PID=$!
+          
+          # Wait for database to be created
+          echo "Waiting for database initialization..."
+          for i in $(seq 1 30); do
+            if [ -f "/app/data/kuma.db" ]; then
+              # Check if user table exists
+              if sqlite3 /app/data/kuma.db ".tables" 2>/dev/null | grep -q "user"; then
+                echo "Database schema ready!"
+                break
+              fi
+            fi
+            echo "Waiting for database schema... ($i/30)"
+            sleep 2
+          done
+          
+          # Stop the temporary server
+          kill $PID 2>/dev/null || true
+          sleep 2
+          
+          # Now inject admin account
+          echo "Creating admin account..."
+          
+          # Check if admin already exists
+          USER_COUNT=$(sqlite3 /app/data/kuma.db "SELECT COUNT(*) FROM user WHERE username='admin';" 2>/dev/null || echo "0")
+          
+          if [ "$USER_COUNT" = "0" ]; then
+            # Password hash for "admin123" generated with bcrypt
+            sqlite3 /app/data/kuma.db "INSERT INTO user (id, username, password, active, timezone, twofa_status) VALUES (1, 'admin', '\$2b\$10\$hZq7kKJB6MI5klz7LUyYBeuVLL31CpNZ0P4S8z8joIBFBAPiR3sPS', 1, 'UTC', 0);" || true
+            echo "Admin account created successfully!"
+          else
+            echo "Admin account already exists"
+          fi
+          
+          echo "Initialization complete"
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
       containers:
       - name: uptime-kuma
         image: louislam/uptime-kuma:1.23.15

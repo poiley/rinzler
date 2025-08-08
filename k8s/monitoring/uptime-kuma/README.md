@@ -37,12 +37,12 @@ This deployment includes:
    ```
 
 3. Access https://uptime.rinzler.cloud
-   - Default username: `admin`
-   - Default password: `admin123`
+   - Username: `admin`
+   - Password: `admin123`
    
 4. All monitors are automatically configured by AutoKuma!
 
-**Important**: Change the default password after first login or update `autokuma-auth.yaml` before deployment.
+**Note**: The admin account is automatically created by the init container. No manual setup required!
 
 ### Monitoring Targets
 Suggested services to monitor:
@@ -63,12 +63,13 @@ Suggested services to monitor:
 
 ### How It Works
 
-1. **Uptime Kuma** starts and waits for connections
-2. **AutoKuma** waits for Uptime Kuma to be ready
-3. **AutoKuma** creates the admin account (if not exists)
-4. **AutoKuma** reads monitor definitions from ConfigMaps
-5. **AutoKuma** syncs all monitors to Uptime Kuma
-6. Any changes to ConfigMaps are automatically synced
+1. **Init Container** starts Uptime Kuma temporarily to create database schema
+2. **Init Container** injects admin account directly into SQLite database
+3. **Uptime Kuma** starts with pre-configured admin account
+4. **AutoKuma** waits for Uptime Kuma to be ready
+5. **AutoKuma** authenticates using the pre-configured credentials
+6. **AutoKuma** reads monitor definitions from ConfigMaps and creates them
+7. Any changes to ConfigMaps are automatically synced
 
 ### Monitor Management
 
