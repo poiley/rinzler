@@ -33,7 +33,9 @@ This deployment uses the official Uptime Kuma Helm chart via ArgoCD.
    kubectl -n monitoring wait --for=condition=available --timeout=300s deployment/uptime-kuma
    ```
 
-3. Access the web interface and create your admin account on first login
+3. Access the web interface at https://uptime.rinzler.cloud
+4. Create your admin account on first login
+5. Add monitors via the web UI (see suggested monitors below)
 
 ### Monitoring Targets
 Suggested services to monitor:
@@ -51,3 +53,20 @@ Suggested services to monitor:
   - https://radarr.rinzler.cloud
   - https://grafana.rinzler.cloud
   - https://argocd.rinzler.cloud
+
+### Monitor Configuration
+
+#### Manual Setup (Recommended for initial deployment)
+Use the Uptime Kuma web UI to add monitors. This is the simplest approach and allows you to:
+- Test connectivity before saving
+- Configure notifications interactively
+- Set up status pages visually
+
+#### Future Automation Options
+If you need to automate monitor creation later, consider:
+
+1. **Uptime Kuma API** - Write scripts using the REST API
+2. **AutoKuma** - For Docker label-based discovery (complex setup)
+3. **Terraform Provider** - If using Terraform for infrastructure
+
+See `monitors-example.yaml` for a template of monitors to add.
