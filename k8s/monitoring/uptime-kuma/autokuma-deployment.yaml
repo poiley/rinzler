@@ -60,6 +60,8 @@ spec:
           value: "/monitors"
         - name: AUTOKUMA__DOCKER__HOSTS
           value: ""
+        - name: RUST_LOG
+          value: "debug"
         - name: AUTOKUMA__LOG_LEVEL
           value: "DEBUG"
         volumeMounts:
