@@ -60,6 +60,8 @@ spec:
           value: "/monitors"
         - name: AUTOKUMA__DOCKER__HOSTS
           value: ""
+        - name: AUTOKUMA__LOG_LEVEL
+          value: "DEBUG"
         volumeMounts:
         - name: monitors
           mountPath: /monitors
