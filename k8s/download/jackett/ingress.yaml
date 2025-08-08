@@ -4,7 +4,7 @@ metadata:
   name: jackett
   namespace: download
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    cert-manager.io/cluster-issuer: letsencrypt-dns
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
   tls:
