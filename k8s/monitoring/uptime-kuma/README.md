@@ -26,23 +26,23 @@ This deployment includes:
 - Auto-sync enabled via ArgoCD
 
 ### Initial Setup
-1. Run the setup script to configure admin password:
-   ```bash
-   ./k8s/monitoring/uptime-kuma/setup-autokuma.sh
-   ```
-
-2. Apply the ArgoCD application:
+1. Apply the ArgoCD application:
    ```bash
    kubectl apply -f k8s/argocd/applications/uptime-kuma.yaml
    ```
 
-3. Wait for deployments:
+2. Wait for deployments:
    ```bash
    kubectl -n monitoring wait --for=condition=available --timeout=300s deployment/uptime-kuma deployment/autokuma
    ```
 
-4. Access https://uptime.rinzler.cloud with username `admin` and your configured password
-5. All monitors are automatically configured - no manual setup needed!
+3. Access https://uptime.rinzler.cloud
+   - Default username: `admin`
+   - Default password: `admin123`
+   
+4. All monitors are automatically configured by AutoKuma!
+
+**Important**: Change the default password after first login or update `autokuma-secret.yaml` before deployment.
 
 ### Monitoring Targets
 Suggested services to monitor:
@@ -60,6 +60,15 @@ Suggested services to monitor:
   - https://radarr.rinzler.cloud
   - https://grafana.rinzler.cloud
   - https://argocd.rinzler.cloud
+
+### How It Works
+
+1. **Uptime Kuma** starts and waits for connections
+2. **AutoKuma** waits for Uptime Kuma to be ready
+3. **AutoKuma** creates the admin account (if not exists)
+4. **AutoKuma** reads monitor definitions from ConfigMaps
+5. **AutoKuma** syncs all monitors to Uptime Kuma
+6. Any changes to ConfigMaps are automatically synced
 
 ### Monitor Management
 

@@ -12,7 +12,7 @@ resources:
   
   # AutoKuma resources
   - autokuma-pvc.yaml
-  # autokuma-secret.yaml is created manually via setup script
+  - autokuma-secret.yaml
   - autokuma-config-configmap.yaml
   - autokuma-monitors-configmap.yaml
   - autokuma-deployment.yaml

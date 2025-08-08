@@ -35,11 +35,11 @@ spec:
       - name: autokuma
         image: ghcr.io/bigboot/autokuma:latest
         env:
-        - name: AUTOKUMA__UPTIME_KUMA__URL
+        - name: AUTOKUMA__KUMA__URL
           value: "http://uptime-kuma:3001"
-        - name: AUTOKUMA__UPTIME_KUMA__USERNAME
+        - name: AUTOKUMA__KUMA__USERNAME
           value: "admin"
-        - name: AUTOKUMA__UPTIME_KUMA__PASSWORD
+        - name: AUTOKUMA__KUMA__PASSWORD
           valueFrom:
             secretKeyRef:
               name: autokuma-secret
@@ -50,8 +50,6 @@ spec:
           value: "kuma"
         - name: AUTOKUMA__DEFAULT_SETTINGS
           value: "/config/defaults.json"
-        - name: AUTOKUMA__LOG_LEVEL
-          value: "INFO"
         volumeMounts:
         - name: monitors
           mountPath: /monitors
