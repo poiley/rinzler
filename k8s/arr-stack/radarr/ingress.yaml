@@ -4,10 +4,35 @@ metadata:
   name: radarr
   namespace: arr-stack
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  tls:
+  - hosts:
+    - radarr.rinzler.me
+    - radarr.rinzler.cloud
+    secretName: radarr-tls
   rules:
-  - host: radarr.rinzler.grid
+  - host: radarr.rinzler.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: radarr
+            port:
+              number: 7878
+  - host: radarr.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: radarr
+            port:
+              number: 7878
     http:
       paths:
       - path: /

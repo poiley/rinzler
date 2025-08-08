@@ -4,10 +4,35 @@ metadata:
   name: grafana
   namespace: monitoring
   annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  tls:
+  - hosts:
+    - grafana.rinzler.me
+    - grafana.rinzler.cloud
+    secretName: grafana-tls
   rules:
-  - host: grafana.rinzler.grid
+  - host: grafana.rinzler.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+  - host: grafana.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
     http:
       paths:
       - path: /

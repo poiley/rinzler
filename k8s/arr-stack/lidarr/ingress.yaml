@@ -4,10 +4,35 @@ metadata:
   name: lidarr
   namespace: arr-stack
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  tls:
+  - hosts:
+    - lidarr.rinzler.me
+    - lidarr.rinzler.cloud
+    secretName: lidarr-tls
   rules:
-  - host: lidarr.rinzler.grid
+  - host: lidarr.rinzler.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lidarr
+            port:
+              number: 8686
+  - host: lidarr.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lidarr
+            port:
+              number: 8686
     http:
       paths:
       - path: /

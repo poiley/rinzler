@@ -1,76 +1,112 @@
 # Rinzler - K3s Media Server
 
-A single-node K3s deployment for a home media server with GitOps, migrated from Docker/Portainer.
+A single-node K3s deployment for a home media server with GitOps, automatic HTTPS, and comprehensive monitoring.
 
 ## 🚀 Quick Start
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/rinzler.git
+git clone https://github.com/poiley/rinzler.git
 cd rinzler
 
-# 2. Set up secrets (see docs/setup/03-deployment-workflow.md)
-cp .env.secret.example .env.secret
-nano .env.secret
-
-# 3. Install K3s
+# 2. Install K3s
 sudo ./scripts/k3s-install.sh
 
-# 4. Install ArgoCD and deploy all services
+# 3. Generate and apply secrets
+./scripts/generate-secrets.sh
+./scripts/apply-secrets.sh
+
+# 4. Install ArgoCD
 ./scripts/install-argocd.sh
 
-# 5. Apply ArgoCD applications (deploys everything automatically)
-kubectl apply -f k8s/argocd/applications/
+# 5. Deploy cert-manager for HTTPS
+kubectl apply -f k8s/cert-manager/application.yaml
+kubectl apply -f k8s/cert-manager/issuers/application.yaml
+
+# 6. Deploy all applications
+kubectl apply -f k8s/namespaces/
+kubectl apply -f k8s/*/application.yaml
 ```
-
-## 📚 Documentation
-
-All documentation is organized in the `/docs` directory:
-
-- **[Setup Guide](docs/setup/01-installation-guide.md)** - Complete installation instructions
-- **[Quick Reference](docs/reference/quick-reference.md)** - Common commands and tasks
-- **[Documentation Index](docs/README.md)** - Full documentation listing
 
 ## 🏗️ Architecture
 
 - **Platform**: K3s (lightweight Kubernetes) on Ubuntu 20.04
 - **GPU**: NVIDIA GTX 750 Ti for Plex hardware transcoding  
 - **Storage**: 43.6TB ZFS pool at `/storage`
-- **Networking**: Traefik ingress with `.grid` domain
+- **Networking**: Traefik ingress with automatic HTTPS
+- **Certificates**: cert-manager with Let's Encrypt support
 - **GitOps**: ArgoCD for automated deployments
+- **Monitoring**: Prometheus + Grafana stack
 
 ## 📦 Services
 
+### Media Stack
 | Service | Purpose | Access URL |
 |---------|---------|------------|
-| **Plex** | Media server | `plex.rinzler.grid` |
-| **Sonarr** | TV management | `sonarr.rinzler.grid` |
-| **Radarr** | Movie management | `radarr.rinzler.grid` |
-| **Transmission** | Downloads (VPN) | `transmission.rinzler.grid` |
-| **Pi-hole** | DNS/Ad blocking | `pihole.rinzler.grid` |
-| **Traefik** | Reverse proxy | `traefik.rinzler.grid` |
+| **Plex** | Media server | `https://plex.rinzler.me` |
+| **Sonarr** | TV management | `https://sonarr.rinzler.me` |
+| **Radarr** | Movie management | `https://radarr.rinzler.me` |
+| **Lidarr** | Music management | `https://lidarr.rinzler.me` |
+| **Readarr** | Book management | `https://readarr.rinzler.me` |
+| **Bazarr** | Subtitle management | `https://bazarr.rinzler.me` |
+| **Kavita** | Book/manga reader | `https://kavita.rinzler.me` |
+| **Tautulli** | Plex statistics | `https://tautulli.rinzler.me` |
 
-[Full service list →](docs/reference/quick-reference.md#service-access)
+### Infrastructure
+| Service | Purpose | Access URL |
+|---------|---------|------------|
+| **ArgoCD** | GitOps deployment | `https://argocd.rinzler.me` |
+| **Grafana** | Monitoring dashboards | `https://grafana.rinzler.me` |
+| **Pi-hole** | DNS/Ad blocking | `https://pihole.rinzler.me` |
+| **Transmission** | Downloads (VPN) | `https://transmission.rinzler.me` |
+| **Home Assistant** | Home automation | `https://home-assistant.rinzler.me` |
+
+## 🔐 HTTPS/SSL Setup
+
+This cluster supports multiple certificate options:
+- **Self-signed CA** for internal `.grid` domains
+- **Let's Encrypt** for public domains (`.me` and `.cloud`)
+- Automatic certificate renewal via cert-manager
+
+For trusted certificates setup, see [MULTI_DOMAIN_SETUP.md](MULTI_DOMAIN_SETUP.md)
 
 ## 🗂️ Repository Structure
 
 ```
 rinzler/
-├── k8s/           # Kubernetes manifests
-├── scripts/       # Installation and maintenance scripts  
-├── docs/          # All documentation
-├── compose/       # Original Docker files (reference)
-└── .env.secret.example  # Secrets template
+├── k8s/                    # Kubernetes manifests
+│   ├── namespaces/        # Namespace definitions
+│   ├── infrastructure/    # Core infrastructure (ArgoCD, Traefik)
+│   ├── cert-manager/      # SSL/TLS certificate management
+│   ├── media/            # Media services (Plex, Kavita, Tautulli)
+│   ├── arr-stack/        # *arr applications
+│   ├── download/         # Download clients
+│   ├── monitoring/       # Prometheus + Grafana
+│   ├── home/            # Home automation
+│   └── network-services/ # Network utilities
+├── scripts/              # Automation scripts
+│   ├── k3s-install.sh   # K3s installation
+│   ├── install-argocd.sh # ArgoCD setup
+│   ├── generate-secrets.sh # Secret generation
+│   └── verify-ssl-setup.sh # SSL verification
+└── MULTI_DOMAIN_SETUP.md # Let's Encrypt setup guide
 ```
 
-See [Repository Structure](docs/reference/repository-structure.md) for details.
+## 🔧 Management Scripts
+
+- `generate-secrets.sh` - Generate secure passwords for all services
+- `apply-secrets.sh` - Apply secrets to Kubernetes
+- `switch-to-letsencrypt.sh` - Switch from self-signed to Let's Encrypt
+- `verify-ssl-setup.sh` - Verify SSL/DNS configuration
+- `server-diagnostics.sh` - System health check
 
 ## 🔒 Security
 
-This repository is designed to be public-friendly:
-- Real secrets go in `.env.secret` (git-ignored)
-- Example values provided for all configurations
-- See [Secrets Management](docs/operations/secrets-management.md)
+- Secrets managed via Kubernetes secrets (not committed to git)
+- VPN protection for download clients via Gluetun
+- Network isolation with namespaces
+- Automatic HTTPS for all services
+- Pi-hole for network-wide ad blocking
 
 ## 📄 License
 

@@ -20,3 +20,4 @@ secrets/
 # Secret files
 .env.secret
 k8s-generated/
+.serena/

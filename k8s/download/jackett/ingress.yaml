@@ -4,10 +4,35 @@ metadata:
   name: jackett
   namespace: download
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  tls:
+  - hosts:
+    - jackett.rinzler.me
+    - jackett.rinzler.cloud
+    secretName: jackett-tls
   rules:
-  - host: jackett.rinzler.grid
+  - host: jackett.rinzler.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jackett
+            port:
+              number: 9117
+  - host: jackett.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jackett
+            port:
+              number: 9117
     http:
       paths:
       - path: /

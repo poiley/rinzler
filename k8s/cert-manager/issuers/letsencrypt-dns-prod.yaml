@@ -1,0 +1,24 @@
+---
+# Production Let's Encrypt issuer using DNS-01 challenge
+# IMPORTANT: Requires cloudflare-api-token secret to be created manually
+# See scripts/setup-cloudflare-secret.sh
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-dns-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: benjpoile@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-dns-prod
+    solvers:
+    - dns01:
+        cloudflare:
+          apiTokenSecretRef:
+            name: cloudflare-api-token
+            key: api-token
+      selector:
+        dnsZones:
+        - "rinzler.me"
+        - "rinzler.cloud"

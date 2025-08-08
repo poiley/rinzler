@@ -4,16 +4,41 @@ metadata:
   name: pihole
   namespace: network-services
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  tls:
+  - hosts:
+    - pihole.rinzler.me
+    - pihole.rinzler.cloud
+    secretName: pihole-tls
   rules:
-  - host: pihole.rinzler.grid
+  - host: pihole.rinzler.me
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: pihole-web
+            name: pihole
+            port:
+              number: 8081
+  - host: pihole.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pihole
+            port:
+              number: 8081
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pihole
             port:
               number: 8081

@@ -4,10 +4,35 @@ metadata:
   name: mylar
   namespace: download
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  tls:
+  - hosts:
+    - mylar.rinzler.me
+    - mylar.rinzler.cloud
+    secretName: mylar-tls
   rules:
-  - host: mylar.rinzler.grid
+  - host: mylar.rinzler.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mylar
+            port:
+              number: 8090
+  - host: mylar.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mylar
+            port:
+              number: 8090
     http:
       paths:
       - path: /

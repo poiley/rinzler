@@ -4,10 +4,35 @@ metadata:
   name: plex
   namespace: media
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  tls:
+  - hosts:
+    - plex.rinzler.me
+    - plex.rinzler.cloud
+    secretName: plex-tls
   rules:
-  - host: plex.rinzler.grid
+  - host: plex.rinzler.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: plex
+            port:
+              number: 32400
+  - host: plex.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: plex
+            port:
+              number: 32400
     http:
       paths:
       - path: /

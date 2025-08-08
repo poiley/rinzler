@@ -4,10 +4,35 @@ metadata:
   name: bazarr
   namespace: arr-stack
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  tls:
+  - hosts:
+    - bazarr.rinzler.me
+    - bazarr.rinzler.cloud
+    secretName: bazarr-tls
   rules:
-  - host: bazarr.rinzler.grid
+  - host: bazarr.rinzler.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bazarr
+            port:
+              number: 6767
+  - host: bazarr.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bazarr
+            port:
+              number: 6767
     http:
       paths:
       - path: /

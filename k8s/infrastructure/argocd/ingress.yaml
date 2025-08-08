@@ -1,20 +1,44 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: argocd-server-ingress
+  name: argocd
   namespace: argocd
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
-  ingressClassName: traefik
+  tls:
+  - hosts:
+    - argocd.rinzler.me
+    - argocd.rinzler.cloud
+    secretName: argocd-tls
   rules:
-  - host: argocd.rinzler.grid
+  - host: argocd.rinzler.me
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: argocd-server
+            name: argocd
+            port:
+              number: 80
+  - host: argocd.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd
+            port:
+              number: 80
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd
             port:
               number: 80

@@ -4,10 +4,35 @@ metadata:
   name: tautulli
   namespace: media
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  tls:
+  - hosts:
+    - tautulli.rinzler.me
+    - tautulli.rinzler.cloud
+    secretName: tautulli-tls
   rules:
-  - host: tautulli.rinzler.grid
+  - host: tautulli.rinzler.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tautulli
+            port:
+              number: 8181
+  - host: tautulli.rinzler.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tautulli
+            port:
+              number: 8181
     http:
       paths:
       - path: /
