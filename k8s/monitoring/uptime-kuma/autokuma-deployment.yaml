@@ -46,6 +46,8 @@ spec:
               key: admin-password
         - name: AUTOKUMA__STATIC_MONITORS
           value: "/monitors"
+        - name: AUTOKUMA__DOCKER__ENABLED
+          value: "false"
         volumeMounts:
         - name: monitors
           mountPath: /monitors
