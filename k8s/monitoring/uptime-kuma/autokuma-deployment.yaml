@@ -46,16 +46,9 @@ spec:
               key: admin-password
         - name: AUTOKUMA__STATIC_MONITORS
           value: "/monitors"
-        - name: AUTOKUMA__TAG_PREFIX
-          value: "kuma"
-        - name: AUTOKUMA__DEFAULT_SETTINGS
-          value: "/config/defaults.json"
         volumeMounts:
         - name: monitors
           mountPath: /monitors
-          readOnly: true
-        - name: config
-          mountPath: /config
           readOnly: true
         - name: data
           mountPath: /data
@@ -70,9 +63,6 @@ spec:
       - name: monitors
         configMap:
           name: autokuma-monitors
-      - name: config
-        configMap:
-          name: autokuma-config
       - name: data
         persistentVolumeClaim:
           claimName: autokuma-pvc
