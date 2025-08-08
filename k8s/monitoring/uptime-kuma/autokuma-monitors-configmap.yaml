@@ -7,142 +7,156 @@ data:
   # AutoKuma will read all .json files from the static monitors directory
   infrastructure.json: |
     {
-      "name": "ArgoCD Server",
-      "type": "http",
-      "url": "http://argocd-server.argocd.svc.cluster.local:80",
-      "interval": 60,
-      "retry_interval": 20,
-      "max_retries": 3,
-      "accepted_statuscodes": "200-302"
+      "http": {
+        "name": "ArgoCD Server",
+        "url": "http://argocd-server.argocd.svc.cluster.local:80",
+        "interval": 60,
+        "retry_interval": 20,
+        "max_retries": 3,
+        "accepted_statuscodes": "200-302"
+      }
     }
   
   argocd-external.json: |
     {
-      "name": "ArgoCD External",
-      "type": "http",
-      "url": "https://argocd.rinzler.cloud",
-      "interval": 300,
-      "retry_interval": 60,
-      "max_retries": 3,
-      "accepted_statuscodes": "200-302"
+      "http": {
+        "name": "ArgoCD External",
+        "url": "https://argocd.rinzler.cloud",
+        "interval": 300,
+        "retry_interval": 60,
+        "max_retries": 3,
+        "accepted_statuscodes": "200-302"
+      }
     }
   
   traefik.json: |
     {
-      "name": "Traefik Dashboard",
-      "type": "http",
-      "url": "https://traefik.rinzler.cloud",
-      "interval": 300,
-      "retry_interval": 60,
-      "max_retries": 3
+      "http": {
+        "name": "Traefik Dashboard",
+        "url": "https://traefik.rinzler.cloud",
+        "interval": 300,
+        "retry_interval": 60,
+        "max_retries": 3
+      }
     }
   
   prometheus.json: |
     {
-      "name": "Prometheus",
-      "type": "http",
-      "url": "http://prometheus.monitoring.svc.cluster.local:9090/-/healthy",
-      "interval": 60,
-      "retry_interval": 20,
-      "max_retries": 3
+      "http": {
+        "name": "Prometheus",
+        "url": "http://prometheus.monitoring.svc.cluster.local:9090/-/healthy",
+        "interval": 60,
+        "retry_interval": 20,
+        "max_retries": 3
+      }
     }
   
   grafana.json: |
     {
-      "name": "Grafana",
-      "type": "http",
-      "url": "http://grafana.monitoring.svc.cluster.local:3000",
-      "interval": 60,
-      "retry_interval": 20,
-      "max_retries": 3
+      "http": {
+        "name": "Grafana",
+        "url": "http://grafana.monitoring.svc.cluster.local:3000",
+        "interval": 60,
+        "retry_interval": 20,
+        "max_retries": 3
+      }
     }
   
   grafana-external.json: |
     {
-      "name": "Grafana External",
-      "type": "http",
-      "url": "https://grafana.rinzler.cloud",
-      "interval": 300,
-      "retry_interval": 60,
-      "max_retries": 3
+      "http": {
+        "name": "Grafana External",
+        "url": "https://grafana.rinzler.cloud",
+        "interval": 300,
+        "retry_interval": 60,
+        "max_retries": 3
+      }
     }
   
   plex.json: |
     {
-      "name": "Plex",
-      "type": "http",
-      "url": "http://plex.media.svc.cluster.local:32400/web",
-      "interval": 60,
-      "retry_interval": 20,
-      "max_retries": 3
+      "http": {
+        "name": "Plex",
+        "url": "http://plex.media.svc.cluster.local:32400/web",
+        "interval": 60,
+        "retry_interval": 20,
+        "max_retries": 3
+      }
     }
   
   plex-external.json: |
     {
-      "name": "Plex External",
-      "type": "http",
-      "url": "https://plex.rinzler.cloud",
-      "interval": 300,
-      "retry_interval": 60,
-      "max_retries": 3
+      "http": {
+        "name": "Plex External",
+        "url": "https://plex.rinzler.cloud",
+        "interval": 300,
+        "retry_interval": 60,
+        "max_retries": 3
+      }
     }
   
   sonarr.json: |
     {
-      "name": "Sonarr",
-      "type": "http",
-      "url": "http://sonarr.arr-stack.svc.cluster.local:8989",
-      "interval": 60,
-      "retry_interval": 20,
-      "max_retries": 3
+      "http": {
+        "name": "Sonarr",
+        "url": "http://sonarr.arr-stack.svc.cluster.local:8989",
+        "interval": 60,
+        "retry_interval": 20,
+        "max_retries": 3
+      }
     }
   
   sonarr-external.json: |
     {
-      "name": "Sonarr External",
-      "type": "http",
-      "url": "https://sonarr.rinzler.cloud",
-      "interval": 300,
-      "retry_interval": 60,
-      "max_retries": 3
+      "http": {
+        "name": "Sonarr External",
+        "url": "https://sonarr.rinzler.cloud",
+        "interval": 300,
+        "retry_interval": 60,
+        "max_retries": 3
+      }
     }
   
   radarr.json: |
     {
-      "name": "Radarr",
-      "type": "http",
-      "url": "http://radarr.arr-stack.svc.cluster.local:7878",
-      "interval": 60,
-      "retry_interval": 20,
-      "max_retries": 3
+      "http": {
+        "name": "Radarr",
+        "url": "http://radarr.arr-stack.svc.cluster.local:7878",
+        "interval": 60,
+        "retry_interval": 20,
+        "max_retries": 3
+      }
     }
   
   radarr-external.json: |
     {
-      "name": "Radarr External",
-      "type": "http",
-      "url": "https://radarr.rinzler.cloud",
-      "interval": 300,
-      "retry_interval": 60,
-      "max_retries": 3
+      "http": {
+        "name": "Radarr External",
+        "url": "https://radarr.rinzler.cloud",
+        "interval": 300,
+        "retry_interval": 60,
+        "max_retries": 3
+      }
     }
   
   jackett.json: |
     {
-      "name": "Jackett",
-      "type": "http",
-      "url": "http://jackett.download.svc.cluster.local:9117",
-      "interval": 60,
-      "retry_interval": 20,
-      "max_retries": 3
+      "http": {
+        "name": "Jackett",
+        "url": "http://jackett.download.svc.cluster.local:9117",
+        "interval": 60,
+        "retry_interval": 20,
+        "max_retries": 3
+      }
     }
   
   pihole.json: |
     {
-      "name": "PiHole",
-      "type": "http",
-      "url": "http://pihole.network-services.svc.cluster.local:80",
-      "interval": 60,
-      "retry_interval": 20,
-      "max_retries": 3
+      "http": {
+        "name": "PiHole",
+        "url": "http://pihole.network-services.svc.cluster.local:80",
+        "interval": 60,
+        "retry_interval": 20,
+        "max_retries": 3
+      }
     }
