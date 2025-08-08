@@ -88,17 +88,23 @@ rinzler/
 │   ├── k3s-install.sh   # K3s installation
 │   ├── install-argocd.sh # ArgoCD setup
 │   ├── generate-secrets.sh # Secret generation
-│   └── verify-ssl-setup.sh # SSL verification
-└── MULTI_DOMAIN_SETUP.md # Let's Encrypt setup guide
+│   └── setup-cloudflare-secret.sh # Cloudflare API setup
+└── docs/                 # Documentation
+    ├── MULTI_DOMAIN_SETUP.md # Let's Encrypt setup guide
+    └── SECURITY.md       # Security best practices
 ```
 
 ## 🔧 Management Scripts
 
 - `generate-secrets.sh` - Generate secure passwords for all services
 - `apply-secrets.sh` - Apply secrets to Kubernetes
-- `switch-to-letsencrypt.sh` - Switch from self-signed to Let's Encrypt
+- `setup-cloudflare-secret.sh` - Configure Cloudflare API token for Let's Encrypt
 - `verify-ssl-setup.sh` - Verify SSL/DNS configuration
 - `server-diagnostics.sh` - System health check
+- `storage-cleanup.sh` - Clean up storage and unused resources
+- `k3s-install.sh` - Install K3s cluster
+- `install-argocd.sh` - Install and configure ArgoCD
+- `nvidia-install.sh` - Install NVIDIA drivers and container runtime
 
 ## 🔒 Security
 
