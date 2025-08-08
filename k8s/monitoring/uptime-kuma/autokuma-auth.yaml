@@ -5,5 +5,5 @@ metadata:
   namespace: monitoring
 type: Opaque
 stringData:
-  # Default admin password - AutoKuma will create the admin account with this
-  admin-password: "admin123"
+  # Default admin password - must match the hash in deployment.yaml init container
+  admin-password: "password"

@@ -52,8 +52,9 @@ spec:
           USER_COUNT=$(sqlite3 /app/data/kuma.db "SELECT COUNT(*) FROM user WHERE username='admin';" 2>/dev/null || echo "0")
           
           if [ "$USER_COUNT" = "0" ]; then
-            # Password hash for "admin123" generated with bcrypt
-            sqlite3 /app/data/kuma.db "INSERT INTO user (id, username, password, active, timezone, twofa_status) VALUES (1, 'admin', '\$2b\$10\$hZq7kKJB6MI5klz7LUyYBeuVLL31CpNZ0P4S8z8joIBFBAPiR3sPS', 1, 'UTC', 0);" || true
+            # Password hash for "password" (simpler for testing)
+            # Hash: $2y$10$IWoZl5q9Tvvp1wxROvi4hOul7XP.rfyrvm4xbm7ufVANke1nfvLIu
+            sqlite3 /app/data/kuma.db "INSERT INTO user (id, username, password, active, timezone, twofa_status) VALUES (1, 'admin', '\$2y\$10\$IWoZl5q9Tvvp1wxROvi4hOul7XP.rfyrvm4xbm7ufVANke1nfvLIu', 1, 'UTC', 0);" || true
             echo "Admin account created successfully!"
           else
             echo "Admin account already exists"

@@ -38,7 +38,7 @@ This deployment includes:
 
 3. Access https://uptime.rinzler.cloud
    - Username: `admin`
-   - Password: `admin123`
+   - Password: `password` (change this after deployment!)
    
 4. All monitors are automatically configured by AutoKuma!
 
