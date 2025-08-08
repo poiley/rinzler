@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: uptime-kuma-setup-admin
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: setup-admin
+        image: curlimages/curl:8.5.0
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+          echo "Waiting for Uptime Kuma to be ready..."
+          
+          # Wait for Uptime Kuma
+          for i in $(seq 1 60); do
+            if curl -f http://uptime-kuma:3001 2>/dev/null | grep -q "Uptime Kuma"; then
+              echo "Uptime Kuma is ready!"
+              break
+            fi
+            echo "Attempt $i/60: Waiting for Uptime Kuma..."
+            sleep 5
+          done
+          
+          # Check if setup is needed
+          echo "Creating admin account..."
+          
+          # Use the Uptime Kuma setup API to create admin account
+          curl -X POST http://uptime-kuma:3001/api/setup \
+            -H "Content-Type: application/json" \
+            -d '{
+              "username": "admin",
+              "password": "admin123"
+            }' || echo "Admin account may already exist"
+          
+          echo "Setup complete!"
