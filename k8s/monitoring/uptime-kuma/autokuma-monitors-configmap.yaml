@@ -1,0 +1,311 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autokuma-monitors
+  namespace: monitoring
+data:
+  # AutoKuma will read all .json files from the static monitors directory
+  infrastructure.json: |
+    [
+      {
+        "name": "ArgoCD Server",
+        "type": "http",
+        "url": "http://argocd-server.argocd.svc.cluster.local:80",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "accepted_statuscodes": ["200-299", "301", "302"],
+        "tags": ["infrastructure", "gitops", "internal"]
+      },
+      {
+        "name": "ArgoCD External",
+        "type": "http",
+        "url": "https://argocd.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "accepted_statuscodes": ["200-299", "301", "302"],
+        "tags": ["infrastructure", "gitops", "external"]
+      },
+      {
+        "name": "Traefik Dashboard",
+        "type": "http",
+        "url": "https://traefik.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["infrastructure", "ingress", "external"]
+      }
+    ]
+  
+  monitoring.json: |
+    [
+      {
+        "name": "Prometheus",
+        "type": "http",
+        "url": "http://prometheus.monitoring.svc.cluster.local:9090/-/healthy",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["monitoring", "metrics", "internal"]
+      },
+      {
+        "name": "Grafana Internal",
+        "type": "http",
+        "url": "http://grafana.monitoring.svc.cluster.local:3000",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["monitoring", "visualization", "internal"]
+      },
+      {
+        "name": "Grafana External",
+        "type": "http",
+        "url": "https://grafana.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["monitoring", "visualization", "external"]
+      }
+    ]
+  
+  media.json: |
+    [
+      {
+        "name": "Plex Internal",
+        "type": "http",
+        "url": "http://plex.media.svc.cluster.local:32400/web",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["media", "streaming", "internal"]
+      },
+      {
+        "name": "Plex External",
+        "type": "http",
+        "url": "https://plex.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["media", "streaming", "external"]
+      },
+      {
+        "name": "Tautulli Internal",
+        "type": "http",
+        "url": "http://tautulli.media.svc.cluster.local:8181",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["media", "analytics", "internal"]
+      },
+      {
+        "name": "Tautulli External",
+        "type": "http",
+        "url": "https://tautulli.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["media", "analytics", "external"]
+      },
+      {
+        "name": "Kavita Internal",
+        "type": "http",
+        "url": "http://kavita.media.svc.cluster.local:5000",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["media", "books", "internal"]
+      },
+      {
+        "name": "Kavita External",
+        "type": "http",
+        "url": "https://kavita.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["media", "books", "external"]
+      }
+    ]
+  
+  arr-stack.json: |
+    [
+      {
+        "name": "Sonarr Internal",
+        "type": "http",
+        "url": "http://sonarr.arr-stack.svc.cluster.local:8989",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["arr-stack", "tv", "internal"]
+      },
+      {
+        "name": "Sonarr External",
+        "type": "http",
+        "url": "https://sonarr.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["arr-stack", "tv", "external"]
+      },
+      {
+        "name": "Radarr Internal",
+        "type": "http",
+        "url": "http://radarr.arr-stack.svc.cluster.local:7878",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["arr-stack", "movies", "internal"]
+      },
+      {
+        "name": "Radarr External",
+        "type": "http",
+        "url": "https://radarr.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["arr-stack", "movies", "external"]
+      },
+      {
+        "name": "Bazarr Internal",
+        "type": "http",
+        "url": "http://bazarr.arr-stack.svc.cluster.local:6767",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["arr-stack", "subtitles", "internal"]
+      },
+      {
+        "name": "Bazarr External",
+        "type": "http",
+        "url": "https://bazarr.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["arr-stack", "subtitles", "external"]
+      },
+      {
+        "name": "Lidarr Internal",
+        "type": "http",
+        "url": "http://lidarr.arr-stack.svc.cluster.local:8686",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["arr-stack", "music", "internal"]
+      },
+      {
+        "name": "Lidarr External",
+        "type": "http",
+        "url": "https://lidarr.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["arr-stack", "music", "external"]
+      },
+      {
+        "name": "Readarr Internal",
+        "type": "http",
+        "url": "http://readarr.arr-stack.svc.cluster.local:8787",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["arr-stack", "ebooks", "internal"]
+      },
+      {
+        "name": "Readarr External",
+        "type": "http",
+        "url": "https://readarr.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["arr-stack", "ebooks", "external"]
+      }
+    ]
+  
+  download.json: |
+    [
+      {
+        "name": "Transmission",
+        "type": "http",
+        "url": "http://gluetun-transmission.download.svc.cluster.local:9091",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["download", "torrent", "internal"]
+      },
+      {
+        "name": "Transmission External",
+        "type": "http",
+        "url": "https://transmission.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["download", "torrent", "external"]
+      },
+      {
+        "name": "Jackett Internal",
+        "type": "http",
+        "url": "http://jackett.download.svc.cluster.local:9117",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["download", "indexer", "internal"]
+      },
+      {
+        "name": "Jackett External",
+        "type": "http",
+        "url": "https://jackett.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["download", "indexer", "external"]
+      },
+      {
+        "name": "FlareSolverr",
+        "type": "http",
+        "url": "http://flaresolverr.download.svc.cluster.local:8191",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["download", "proxy", "internal"]
+      },
+      {
+        "name": "Mylar Internal",
+        "type": "http",
+        "url": "http://mylar.download.svc.cluster.local:8090",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["download", "comics", "internal"]
+      },
+      {
+        "name": "Mylar External",
+        "type": "http",
+        "url": "https://mylar.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["download", "comics", "external"]
+      }
+    ]
+  
+  network.json: |
+    [
+      {
+        "name": "PiHole Internal",
+        "type": "http",
+        "url": "http://pihole.network-services.svc.cluster.local:80",
+        "interval": 60,
+        "retryInterval": 20,
+        "maxretries": 3,
+        "tags": ["network", "dns", "internal"]
+      },
+      {
+        "name": "PiHole External",
+        "type": "http",
+        "url": "https://pihole.rinzler.cloud",
+        "interval": 300,
+        "retryInterval": 60,
+        "maxretries": 3,
+        "tags": ["network", "dns", "external"]
+      }
+    ]

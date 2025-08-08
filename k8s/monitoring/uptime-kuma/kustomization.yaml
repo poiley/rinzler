@@ -4,7 +4,15 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
+  # Uptime Kuma resources
   - pvc.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+  
+  # AutoKuma resources
+  - autokuma-pvc.yaml
+  - autokuma-secret.yaml
+  - autokuma-config-configmap.yaml
+  - autokuma-monitors-configmap.yaml
+  - autokuma-deployment.yaml

@@ -1,17 +1,20 @@
-# Uptime Kuma
+# Uptime Kuma with AutoKuma
 
-Uptime Kuma is a self-hosted monitoring tool for tracking the uptime of services.
+Fully automated uptime monitoring with Uptime Kuma and AutoKuma for GitOps-managed monitor configuration.
 
 ## Deployment
 
-This deployment uses the official Uptime Kuma Helm chart via ArgoCD.
+This deployment includes:
+- **Uptime Kuma**: Self-hosted monitoring tool
+- **AutoKuma**: Automated monitor management from Git
 
 ### Features
-- Monitors HTTP(s), TCP, DNS, and other protocols
-- Status page generation
-- Multiple notification channels (Discord, Slack, Email, etc.)
-- Persistent storage for configuration and history
-- HTTPS enabled with cert-manager
+- **Fully Automated**: No manual configuration needed
+- **GitOps Managed**: All monitors defined in ConfigMaps
+- **Auto-sync**: Changes in Git automatically update monitors
+- **Comprehensive Monitoring**: Internal and external endpoints
+- **Persistent Storage**: Configuration and history preserved
+- **HTTPS Enabled**: Secure access with cert-manager
 
 ### Access
 - Primary URL: https://uptime.rinzler.cloud
@@ -23,19 +26,23 @@ This deployment uses the official Uptime Kuma Helm chart via ArgoCD.
 - Auto-sync enabled via ArgoCD
 
 ### Initial Setup
-1. Apply the ArgoCD application:
+1. Run the setup script to configure admin password:
+   ```bash
+   ./k8s/monitoring/uptime-kuma/setup-autokuma.sh
+   ```
+
+2. Apply the ArgoCD application:
    ```bash
    kubectl apply -f k8s/argocd/applications/uptime-kuma.yaml
    ```
 
-2. Wait for deployment:
+3. Wait for deployments:
    ```bash
-   kubectl -n monitoring wait --for=condition=available --timeout=300s deployment/uptime-kuma
+   kubectl -n monitoring wait --for=condition=available --timeout=300s deployment/uptime-kuma deployment/autokuma
    ```
 
-3. Access the web interface at https://uptime.rinzler.cloud
-4. Create your admin account on first login
-5. Add monitors via the web UI (see suggested monitors below)
+4. Access https://uptime.rinzler.cloud with username `admin` and your configured password
+5. All monitors are automatically configured - no manual setup needed!
 
 ### Monitoring Targets
 Suggested services to monitor:
@@ -54,19 +61,37 @@ Suggested services to monitor:
   - https://grafana.rinzler.cloud
   - https://argocd.rinzler.cloud
 
-### Monitor Configuration
+### Monitor Management
 
-#### Manual Setup (Recommended for initial deployment)
-Use the Uptime Kuma web UI to add monitors. This is the simplest approach and allows you to:
-- Test connectivity before saving
-- Configure notifications interactively
-- Set up status pages visually
+#### Automated Configuration
+AutoKuma automatically manages all monitors based on ConfigMaps:
 
-#### Future Automation Options
-If you need to automate monitor creation later, consider:
+1. **View current monitors**: Check `autokuma-monitors-configmap.yaml`
+2. **Add new monitors**: Edit the appropriate JSON section in the ConfigMap
+3. **Deploy changes**: Commit, push, and ArgoCD will sync
 
-1. **Uptime Kuma API** - Write scripts using the REST API
-2. **AutoKuma** - For Docker label-based discovery (complex setup)
-3. **Terraform Provider** - If using Terraform for infrastructure
+Example adding a new monitor:
+```json
+{
+  "name": "My New Service",
+  "type": "http",
+  "url": "http://my-service.namespace.svc.cluster.local:8080",
+  "interval": 60,
+  "tags": ["custom", "internal"]
+}
+```
 
-See `monitors-example.yaml` for a template of monitors to add.
+#### Monitor Organization
+Monitors are organized by category in separate JSON files within the ConfigMap:
+- `infrastructure.json` - Core cluster services
+- `monitoring.json` - Observability stack
+- `media.json` - Media streaming services
+- `arr-stack.json` - Media automation (*arr apps)
+- `download.json` - Download clients and tools
+- `network.json` - Network services
+
+#### AutoKuma Logs
+To troubleshoot or verify AutoKuma operations:
+```bash
+kubectl logs -n monitoring deployment/autokuma -f
+```
