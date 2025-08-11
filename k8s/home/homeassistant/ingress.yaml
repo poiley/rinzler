@@ -10,11 +10,11 @@ spec:
   ingressClassName: traefik
   tls:
   - hosts:
-    - homeassistant.rinzler.me
-    - homeassistant.rinzler.cloud
+    - home.rinzler.me
+    - home.rinzler.cloud
     secretName: homeassistant-tls
   rules:
-  - host: homeassistant.rinzler.me
+  - host: home.rinzler.me
     http:
       paths:
       - path: /
@@ -24,7 +24,7 @@ spec:
             name: homeassistant
             port:
               number: 8123
-  - host: homeassistant.rinzler.cloud
+  - host: home.rinzler.cloud
     http:
       paths:
       - path: /
