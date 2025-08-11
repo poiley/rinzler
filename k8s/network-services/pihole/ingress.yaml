@@ -20,7 +20,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: pihole
+            name: pihole-web
             port:
               number: 8081
   - host: pihole.rinzler.cloud
@@ -30,6 +30,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: pihole
+            name: pihole-web
             port:
               number: 8081
