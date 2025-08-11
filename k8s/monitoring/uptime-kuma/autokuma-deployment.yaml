@@ -44,18 +44,15 @@ spec:
             secretKeyRef:
               name: autokuma-secret
               key: admin-password
-        - name: AUTOKUMA__STATIC_MONITORS
-          value: "/monitors"
         - name: AUTOKUMA__DOCKER__ENABLED
           value: "false"
+        - name: AUTOKUMA__KUBERNETES__ENABLED
+          value: "true"
         - name: RUST_LOG
-          value: "debug"
+          value: "trace"
         - name: AUTOKUMA__LOG_LEVEL
           value: "DEBUG"
         volumeMounts:
-        - name: monitors
-          mountPath: /monitors
-          readOnly: true
         - name: data
           mountPath: /data
         resources:
@@ -65,10 +62,8 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "500m"
+      serviceAccountName: autokuma
       volumes:
-      - name: monitors
-        configMap:
-          name: autokuma-monitors
       - name: data
         persistentVolumeClaim:
           claimName: autokuma-pvc

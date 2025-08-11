@@ -1,0 +1,198 @@
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: argocd-server
+  namespace: monitoring
+spec:
+  config:
+    name: "ArgoCD Server"
+    type: "http"
+    url: "http://argocd-server.argocd.svc.cluster.local:80"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+    accepted_statuscodes: "200-302"
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: argocd-external
+  namespace: monitoring
+spec:
+  config:
+    name: "ArgoCD External"
+    type: "http"
+    url: "https://argocd.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+    accepted_statuscodes: "200-302"
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: traefik
+  namespace: monitoring
+spec:
+  config:
+    name: "Traefik Dashboard"
+    type: "http"
+    url: "https://traefik.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  config:
+    name: "Prometheus"
+    type: "http"
+    url: "http://prometheus.monitoring.svc.cluster.local:9090/-/healthy"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  config:
+    name: "Grafana"
+    type: "http"
+    url: "http://grafana.monitoring.svc.cluster.local:3000"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: grafana-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Grafana External"
+    type: "http"
+    url: "https://grafana.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: plex
+  namespace: monitoring
+spec:
+  config:
+    name: "Plex"
+    type: "http"
+    url: "http://plex.media.svc.cluster.local:32400/web"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: plex-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Plex External"
+    type: "http"
+    url: "https://plex.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: sonarr
+  namespace: monitoring
+spec:
+  config:
+    name: "Sonarr"
+    type: "http"
+    url: "http://sonarr.arr-stack.svc.cluster.local:8989"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: sonarr-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Sonarr External"
+    type: "http"
+    url: "https://sonarr.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: radarr
+  namespace: monitoring
+spec:
+  config:
+    name: "Radarr"
+    type: "http"
+    url: "http://radarr.arr-stack.svc.cluster.local:7878"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: radarr-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Radarr External"
+    type: "http"
+    url: "https://radarr.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: jackett
+  namespace: monitoring
+spec:
+  config:
+    name: "Jackett"
+    type: "http"
+    url: "http://jackett.download.svc.cluster.local:9117"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: pihole
+  namespace: monitoring
+spec:
+  config:
+    name: "PiHole"
+    type: "http"
+    url: "http://pihole.network-services.svc.cluster.local:80"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
