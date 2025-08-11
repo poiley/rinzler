@@ -7,6 +7,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-dns
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  ingressClassName: traefik
   tls:
   - hosts:
     - lidarr.rinzler.me
@@ -24,15 +25,6 @@ spec:
             port:
               number: 8686
   - host: lidarr.rinzler.cloud
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: lidarr
-            port:
-              number: 8686
     http:
       paths:
       - path: /

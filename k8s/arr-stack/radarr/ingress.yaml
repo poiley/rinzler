@@ -7,6 +7,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-dns
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  ingressClassName: traefik
   tls:
   - hosts:
     - radarr.rinzler.me
@@ -24,15 +25,6 @@ spec:
             port:
               number: 7878
   - host: radarr.rinzler.cloud
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: radarr
-            port:
-              number: 7878
     http:
       paths:
       - path: /

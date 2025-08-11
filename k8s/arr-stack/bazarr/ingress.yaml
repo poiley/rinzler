@@ -7,6 +7,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-dns
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
+  ingressClassName: traefik
   tls:
   - hosts:
     - bazarr.rinzler.me
@@ -24,15 +25,6 @@ spec:
             port:
               number: 6767
   - host: bazarr.rinzler.cloud
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: bazarr
-            port:
-              number: 6767
     http:
       paths:
       - path: /
