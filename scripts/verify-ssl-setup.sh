@@ -60,7 +60,7 @@ echo ""
 # Check ClusterIssuers
 echo "3. Certificate Issuers:"
 echo "----------------------"
-for issuer in rinzler-ca-issuer letsencrypt-dns-prod; do
+for issuer in rinzler-ca-issuer letsencrypt-dns; do
     if kubectl get clusterissuer $issuer >/dev/null 2>&1; then
         ready=$(kubectl get clusterissuer $issuer -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')
         if [ "$ready" = "True" ]; then
@@ -133,7 +133,7 @@ else
 fi
 
 # Check if Let's Encrypt issuer exists
-if kubectl get clusterissuer letsencrypt-dns-prod >/dev/null 2>&1; then
+if kubectl get clusterissuer letsencrypt-dns >/dev/null 2>&1; then
     echo -e "${GREEN}✓ Let's Encrypt issuer configured${NC}"
 else
     echo -e "${YELLOW}⚠ Let's Encrypt issuer not configured yet${NC}"

@@ -24,7 +24,8 @@ rinzler/
 │   │   ├── monitoring/
 │   │   │   ├── prometheus.yaml
 │   │   │   └── grafana.yaml
-│   │   └── uptime-kuma/
+│   │   ├── uptime-kuma/
+│   │   └── cert-manager/
 │   ├── media/
 │   │   ├── namespace.yaml
 │   │   ├── plex/

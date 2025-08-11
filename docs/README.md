@@ -25,14 +25,11 @@ docs/
 
 ## 🏗️ Architecture & Planning
 - **[Server Analysis](current-server-analysis.md)** - Hardware specs and current state
-- **[Migration Strategy](k3s-migration-strategy.md)** - High-level approach and phases
-- **[Migration Status](k8s-migration-status.md)** - Service organization and progress tracking
-- **[Port Strategy](migration-ports-strategy.md)** - How port conflicts are resolved
+- **[Service Architecture](service-architecture.md)** - Service organization by namespace
 - **[GitOps Architecture](gitops-architecture.md)** - How ArgoCD deployment works
 
 ## 🌐 Networking & Configuration
-- **[Traefik Networking](traefik-networking.md)** - Ingress controller and .grid domain
-- **[Pi-hole DNS Setup](pihole-dns-setup.md)** - Configure .grid domain resolution
+- **[Traefik Networking](traefik-networking.md)** - Ingress controller configuration
 - **[K8s Config Validation](k8s-config-validation.md)** - Docker to K8s validation report
 
 ## 📚 Glossary
@@ -43,7 +40,7 @@ docs/
 - **ArgoCD**: Kubernetes controller that continuously monitors Git repos and applies changes
 - **Traefik**: Modern reverse proxy with automatic service discovery
 - **hostPath**: Direct mount of host filesystem into Kubernetes pods
-- **.grid TLD**: Custom top-level domain for local services (Tron reference)
+
 
 ### Namespaces
 - **media**: Plex, Tautulli, Kavita - media consumption services

@@ -1,6 +1,6 @@
-# Kubernetes Manifests Migration Status
+# Kubernetes Service Architecture
 
-## ✅ Completed Manifests - Organized by Function
+## Service Organization
 
 ### Media Services (`media` namespace)
 Services for media consumption and organization:
@@ -13,7 +13,6 @@ Automated media management suite that works together:
 - **Sonarr** - TV show management
 - **Radarr** - Movie management
 - **Lidarr** - Music management
-- **Readarr** - Book/audiobook management
 - **Bazarr** - Subtitle management for Sonarr/Radarr
 
 ### Download Services (`download` namespace)
@@ -74,25 +73,15 @@ Download (Jackett/Transmission) ← Arr Stack (Sonarr/Radarr/etc)
                           Media (Plex/Kavita)
 ```
 
-## Migration Notes
+## Storage Configuration
 
 ### Storage Paths
-All services maintain their original storage paths:
+All services use the following storage paths:
 - `/storage/media` - Media library
 - `/storage/downloads` - Download directory
-- `/storage/docker_volumes/*` - Existing config directories
+- `/storage/docker_volumes/*` - Service configuration directories
 
 ### Network Configuration
-- Services within same namespace can communicate by service name
+- Services within same namespace communicate by service name
 - Cross-namespace communication uses `service.namespace.svc.cluster.local`
-- Ingress routes handle external access
-
-### Next Steps
-1. Install k3s on the server
-2. Apply namespaces in order
-3. Deploy infrastructure services first
-4. Deploy network services
-5. Deploy download stack
-6. Deploy arr stack
-7. Deploy media services
-8. Deploy home automation
+- Ingress routes handle external access via Traefik

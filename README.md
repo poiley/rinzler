@@ -5,28 +5,13 @@ A single-node K3s deployment for a home media server with GitOps, automatic HTTP
 ## 🚀 Quick Start
 
 ```bash
-# 1. Clone repository
+# Clone and setup
 git clone https://github.com/poiley/rinzler.git
 cd rinzler
-
-# 2. Install K3s
-sudo ./scripts/k3s-install.sh
-
-# 3. Generate and apply secrets
-./scripts/generate-secrets.sh
-./scripts/apply-secrets.sh
-
-# 4. Install ArgoCD
-./scripts/install-argocd.sh
-
-# 5. Deploy cert-manager for HTTPS
-kubectl apply -f k8s/cert-manager/application.yaml
-kubectl apply -f k8s/cert-manager/issuers/application.yaml
-
-# 6. Deploy all applications
-kubectl apply -f k8s/namespaces/
-kubectl apply -f k8s/*/application.yaml
+sudo ./scripts/setup.sh
 ```
+
+That's it. The setup script handles everything.
 
 ## 🏗️ Architecture
 
@@ -56,18 +41,16 @@ kubectl apply -f k8s/*/application.yaml
 |---------|---------|------------|
 | **ArgoCD** | GitOps deployment | `https://argocd.rinzler.me` |
 | **Grafana** | Monitoring dashboards | `https://grafana.rinzler.me` |
+| **Uptime Kuma** | Service uptime monitoring | `https://uptime-kuma.rinzler.me` |
 | **Pi-hole** | DNS/Ad blocking | `https://pihole.rinzler.me` |
 | **Transmission** | Downloads (VPN) | `https://transmission.rinzler.me` |
 | **Home Assistant** | Home automation | `https://home-assistant.rinzler.me` |
 
 ## 🔐 HTTPS/SSL Setup
 
-This cluster supports multiple certificate options:
-- **Self-signed CA** for internal `.grid` domains
-- **Let's Encrypt** for public domains (`.me` and `.cloud`)
-- Automatic certificate renewal via cert-manager
+The cluster uses Let's Encrypt certificates for all services via cert-manager with automatic renewal.
 
-For trusted certificates setup, see [MULTI_DOMAIN_SETUP.md](MULTI_DOMAIN_SETUP.md)
+See [MULTI_DOMAIN_SETUP.md](MULTI_DOMAIN_SETUP.md) for domain and SSL configuration.
 
 ## 🗂️ Repository Structure
 
@@ -93,17 +76,13 @@ rinzler/
     └── SECURITY.md       # Security best practices
 ```
 
-## 🔧 Management Scripts
+## 🔧 Scripts
 
-- `generate-secrets.sh` - Generate secure passwords for all services
-- `apply-secrets.sh` - Apply secrets to Kubernetes
-- `setup-cloudflare-secret.sh` - Configure Cloudflare API token for Let's Encrypt
-- `verify-ssl-setup.sh` - Verify SSL/DNS configuration
+- `setup.sh` - Complete cluster setup (run this first)
+- `generate-secrets.sh` - Generate service passwords
 - `server-diagnostics.sh` - System health check
-- `storage-cleanup.sh` - Clean up storage and unused resources
-- `k3s-install.sh` - Install K3s cluster
-- `install-argocd.sh` - Install and configure ArgoCD
-- `nvidia-install.sh` - Install NVIDIA drivers and container runtime
+- `storage-cleanup.sh` - Clean up storage
+- `nvidia-install.sh` - NVIDIA GPU setup
 
 ## 🔒 Security
 

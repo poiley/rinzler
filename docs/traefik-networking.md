@@ -1,66 +1,74 @@
-# Traefik Networking Configuration
+# Traefik Networking
 
-## Overview
-Traefik has been added as an ingress controller to provide a unified entry point for all services. This replaces the direct NodePort access with hostname-based routing.
+## Architecture
 
-## Access URLs
-All services are now accessible via hostnames:
-
-### Media Services
-- **Plex**: http://plex.rinzler.grid
-- **Tautulli**: http://tautulli.rinzler.grid
-- **Kavita**: http://kavita.rinzler.grid
-
-### Arr Stack
-- **Sonarr**: http://sonarr.rinzler.grid
-- **Radarr**: http://radarr.rinzler.grid
-- **Lidarr**: http://lidarr.rinzler.grid
-- **Bazarr**: http://bazarr.rinzler.grid
-
-### Download Services
-- **Jackett**: http://jackett.rinzler.grid
-- **Transmission**: http://transmission.rinzler.grid
-- **Mylar**: http://mylar.rinzler.grid
-
-### Infrastructure
-- **Traefik Dashboard**: http://traefik.rinzler.grid
-- **Home Assistant**: http://home.rinzler.grid
-- **Pi-hole**: http://pihole.rinzler.grid
+K3s includes Traefik as the ingress controller. All HTTP/HTTPS traffic routes through Traefik for:
+- SSL/TLS termination
+- Hostname-based routing
+- Load balancing
 
 ## DNS Configuration
-You'll need to configure DNS to resolve *.rinzler.grid to your server IP. Options:
 
-1. **Pi-hole DNS**: Add local DNS records in Pi-hole
-2. **Local hosts file**: Add entries to /etc/hosts
-3. **Router DNS**: Configure your router's local DNS
-
-Example hosts file entries:
+Internal DNS (Pi-hole) resolves:
 ```
-192.168.1.100 plex.rinzler.grid
-192.168.1.100 sonarr.rinzler.grid
-192.168.1.100 radarr.rinzler.grid
-# ... etc
+*.rinzler.me     → 192.168.1.227
+*.rinzler.cloud  → 192.168.1.227
 ```
 
-Or use a wildcard DNS entry if your DNS server supports it:
+## Ingress Configuration
+
+Each service defines an Ingress:
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: service
+  namespace: namespace
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns
+spec:
+  tls:
+  - hosts:
+    - service.rinzler.me
+    secretName: service-tls
+  rules:
+  - host: service.rinzler.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service
+            port:
+              number: 8080
 ```
-*.rinzler.grid → 192.168.1.100
+
+## Certificate Management
+
+- cert-manager provisions Let's Encrypt certificates
+- DNS-01 challenge via Cloudflare API
+- Auto-renewal 30 days before expiration
+
+## Traffic Flow
+
+```
+Client → DNS (192.168.1.227) → Traefik (443/80) → Service Pod
 ```
 
-## Direct Port Access
-Services are still accessible via ports for compatibility:
-- Traefik will listen on ports 80 (HTTP) and 443 (HTTPS)
-- Individual service ports are no longer exposed directly
-- Use Traefik dashboard to monitor routing
+## Troubleshooting
 
-## Benefits
-1. **Single Entry Point**: All traffic goes through Traefik
-2. **Hostname-based Routing**: Cleaner URLs without port numbers
-3. **Future SSL Support**: Easy to add HTTPS with Let's Encrypt
-4. **Observability**: Traefik dashboard shows all routes and metrics
-5. **Middleware Support**: Can add authentication, rate limiting, etc.
+```bash
+# Check ingresses
+kubectl get ingress -A
 
-## Migration Notes
-- Existing bookmarks with ports will need updating to use hostnames
-- Services communicate internally via Kubernetes DNS (service.namespace.svc.cluster.local)
-- Traefik automatically discovers services via Kubernetes Ingress resources
+# Check certificates
+kubectl get certificates -A
+
+# Traefik logs
+kubectl logs -n kube-system deployment/traefik
+
+# Test DNS
+nslookup service.rinzler.me
+curl -v https://service.rinzler.me
+```
