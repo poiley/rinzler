@@ -39,10 +39,11 @@ spec:
           mountPath: /tv
         resources:
           limits:
-            memory: 256Mi
+            cpu: 1000m
+            memory: 512Mi
           requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 500m
+            memory: 256Mi
       volumes:
       - name: config
         hostPath:
