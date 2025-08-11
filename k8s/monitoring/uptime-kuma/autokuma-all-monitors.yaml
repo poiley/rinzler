@@ -198,7 +198,8 @@ spec:
   config:
     name: "Home Assistant"
     type: "http"
-    url: "http://homeassistant.home.svc.cluster.local:8123"
+    url: "http://homeassistant.home.svc.cluster.local:8123/manifest.json"
+    accepted_statuscodes: "200-401"
     interval: 60
     retryInterval: 20
     maxretries: 3
@@ -344,7 +345,7 @@ spec:
   config:
     name: "Exportarr Bazarr"
     type: "http"
-    url: "http://exportarr-bazarr.monitoring.svc.cluster.local:9710/metrics"
+    url: "http://exportarr-bazarr.monitoring.svc.cluster.local:9710"
     interval: 60
     retryInterval: 20
     maxretries: 3
