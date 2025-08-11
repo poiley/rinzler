@@ -117,34 +117,6 @@ spec:
     retryInterval: 60
     maxretries: 3
 ---
-apiVersion: autokuma.bigboot.dev/v1
-kind: KumaEntity
-metadata:
-  name: readarr
-  namespace: monitoring
-spec:
-  config:
-    name: "Readarr"
-    type: "http"
-    url: "http://readarr.arr-stack.svc.cluster.local:8787"
-    interval: 60
-    retryInterval: 20
-    maxretries: 3
----
-apiVersion: autokuma.bigboot.dev/v1
-kind: KumaEntity
-metadata:
-  name: readarr-external
-  namespace: monitoring
-spec:
-  config:
-    name: "Readarr External"
-    type: "http"
-    url: "https://readarr.rinzler.cloud"
-    interval: 300
-    retryInterval: 60
-    maxretries: 3
----
 # Download Services
 apiVersion: autokuma.bigboot.dev/v1
 kind: KumaEntity

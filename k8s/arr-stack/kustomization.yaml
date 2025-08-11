@@ -19,9 +19,6 @@ resources:
   - lidarr/service.yaml
   - lidarr/ingress.yaml
   # Readarr
-  - readarr/deployment.yaml
-  - readarr/service.yaml
-  - readarr/ingress.yaml
   # Bazarr
   - bazarr/deployment.yaml
   - bazarr/service.yaml

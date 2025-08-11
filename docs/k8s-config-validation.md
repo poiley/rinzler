@@ -8,7 +8,6 @@
 - Sonarr: `/var/lib/docker/volumes/sonarr_data/_data`
 - Radarr: `/var/lib/docker/volumes/radarr_data/_data`
 - Lidarr: `/var/lib/docker/volumes/lidarr_data/_data`
-- Readarr: `/var/lib/docker/volumes/readarr_data/_data`
 - Tautulli: `/var/lib/docker/volumes/tautulli_data/_data`
 - Jackett: `/var/lib/docker/volumes/jackett_data/_data`
 - Mylar: `/var/lib/docker/volumes/mylar_data/_data`

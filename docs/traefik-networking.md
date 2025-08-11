@@ -15,7 +15,6 @@ All services are now accessible via hostnames:
 - **Sonarr**: http://sonarr.rinzler.grid
 - **Radarr**: http://radarr.rinzler.grid
 - **Lidarr**: http://lidarr.rinzler.grid
-- **Readarr**: http://readarr.rinzler.grid
 - **Bazarr**: http://bazarr.rinzler.grid
 
 ### Download Services

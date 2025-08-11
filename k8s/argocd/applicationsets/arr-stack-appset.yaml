@@ -10,7 +10,6 @@ spec:
       - service: radarr
       - service: sonarr
       - service: lidarr
-      - service: readarr
       - service: bazarr
   template:
     metadata:

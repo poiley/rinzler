@@ -47,7 +47,6 @@ kubectl apply -f k8s/*/application.yaml
 | **Sonarr** | TV management | `https://sonarr.rinzler.me` |
 | **Radarr** | Movie management | `https://radarr.rinzler.me` |
 | **Lidarr** | Music management | `https://lidarr.rinzler.me` |
-| **Readarr** | Book management | `https://readarr.rinzler.me` |
 | **Bazarr** | Subtitle management | `https://bazarr.rinzler.me` |
 | **Kavita** | Book/manga reader | `https://kavita.rinzler.me` |
 | **Tautulli** | Plex statistics | `https://tautulli.rinzler.me` |
