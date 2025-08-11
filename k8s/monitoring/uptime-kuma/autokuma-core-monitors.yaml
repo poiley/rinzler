@@ -1,19 +1,5 @@
 ---
-apiVersion: autokuma.bigboot.dev/v1
-kind: KumaEntity
-metadata:
-  name: argocd-server
-  namespace: monitoring
-spec:
-  config:
-    name: "ArgoCD Server"
-    type: "http"
-    url: "http://argocd-server.argocd.svc.cluster.local:80"
-    interval: 60
-    retryInterval: 20
-    maxretries: 3
-    accepted_statuscodes: "200-302"
----
+# Core Infrastructure Monitors
 apiVersion: autokuma.bigboot.dev/v1
 kind: KumaEntity
 metadata:
@@ -66,7 +52,7 @@ spec:
   config:
     name: "Grafana"
     type: "http"
-    url: "http://grafana.monitoring.svc.cluster.local:3000"
+    url: "http://grafana.monitoring.svc.cluster.local:3000/api/health"
     interval: 60
     retryInterval: 20
     maxretries: 3
@@ -122,7 +108,7 @@ spec:
   config:
     name: "Sonarr"
     type: "http"
-    url: "http://sonarr.arr-stack.svc.cluster.local:8989"
+    url: "http://sonarr.arr-stack.svc.cluster.local:8989/api/v3/health"
     interval: 60
     retryInterval: 20
     maxretries: 3
@@ -150,7 +136,7 @@ spec:
   config:
     name: "Radarr"
     type: "http"
-    url: "http://radarr.arr-stack.svc.cluster.local:7878"
+    url: "http://radarr.arr-stack.svc.cluster.local:7878/api/v3/health"
     interval: 60
     retryInterval: 20
     maxretries: 3
@@ -178,10 +164,11 @@ spec:
   config:
     name: "Jackett"
     type: "http"
-    url: "http://jackett.download.svc.cluster.local:9117"
+    url: "http://jackett.download.svc.cluster.local:9117/UI/Dashboard"
     interval: 60
     retryInterval: 20
     maxretries: 3
+    accepted_statuscodes: "200-302"
 ---
 apiVersion: autokuma.bigboot.dev/v1
 kind: KumaEntity
@@ -192,7 +179,8 @@ spec:
   config:
     name: "PiHole"
     type: "http"
-    url: "http://pihole.network-services.svc.cluster.local:80"
+    url: "http://pihole-web.network-services.svc.cluster.local:8081/admin/"
     interval: 60
     retryInterval: 20
     maxretries: 3
+    accepted_statuscodes: "200-302"

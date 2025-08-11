@@ -1,0 +1,470 @@
+---
+# ArgoCD Services
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: argocd-server-internal
+  namespace: monitoring
+spec:
+  config:
+    name: "ArgoCD Server Internal"
+    type: "http"
+    url: "http://argocd-server.argocd.svc.cluster.local:80"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+    accepted_statuscodes: "200-302"
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: argocd-repo-server
+  namespace: monitoring
+spec:
+  config:
+    name: "ArgoCD Repo Server"
+    type: "port"
+    hostname: "argocd-repo-server.argocd.svc.cluster.local"
+    port: 8081
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: argocd-redis
+  namespace: monitoring
+spec:
+  config:
+    name: "ArgoCD Redis"
+    type: "port"
+    hostname: "argocd-redis.argocd.svc.cluster.local"
+    port: 6379
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: argocd-dex-server
+  namespace: monitoring
+spec:
+  config:
+    name: "ArgoCD Dex Server"
+    type: "port"
+    hostname: "argocd-dex-server.argocd.svc.cluster.local"
+    port: 5556
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+# Arr Stack Services
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: bazarr
+  namespace: monitoring
+spec:
+  config:
+    name: "Bazarr"
+    type: "http"
+    url: "http://bazarr.arr-stack.svc.cluster.local:6767"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: bazarr-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Bazarr External"
+    type: "http"
+    url: "https://bazarr.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: lidarr
+  namespace: monitoring
+spec:
+  config:
+    name: "Lidarr"
+    type: "http"
+    url: "http://lidarr.arr-stack.svc.cluster.local:8686"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: lidarr-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Lidarr External"
+    type: "http"
+    url: "https://lidarr.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: readarr
+  namespace: monitoring
+spec:
+  config:
+    name: "Readarr"
+    type: "http"
+    url: "http://readarr.arr-stack.svc.cluster.local:8787"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: readarr-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Readarr External"
+    type: "http"
+    url: "https://readarr.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+# Download Services
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: transmission
+  namespace: monitoring
+spec:
+  config:
+    name: "Transmission"
+    type: "http"
+    url: "http://transmission.download.svc.cluster.local:9091"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: transmission-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Transmission External"
+    type: "http"
+    url: "https://transmission.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: flaresolverr
+  namespace: monitoring
+spec:
+  config:
+    name: "FlareSolverr"
+    type: "http"
+    url: "http://flaresolverr.download.svc.cluster.local:8191"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: mylar
+  namespace: monitoring
+spec:
+  config:
+    name: "Mylar"
+    type: "http"
+    url: "http://mylar.download.svc.cluster.local:8090"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: fmd2
+  namespace: monitoring
+spec:
+  config:
+    name: "FMD2"
+    type: "http"
+    url: "http://fmd2.download.svc.cluster.local:3000"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+# Home Services
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: homeassistant
+  namespace: monitoring
+spec:
+  config:
+    name: "Home Assistant"
+    type: "http"
+    url: "http://homeassistant.home.svc.cluster.local:8123"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: homeassistant-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Home Assistant External"
+    type: "http"
+    url: "https://home.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+# Media Services
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: tautulli
+  namespace: monitoring
+spec:
+  config:
+    name: "Tautulli"
+    type: "http"
+    url: "http://tautulli.media.svc.cluster.local:8181"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: tautulli-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Tautulli External"
+    type: "http"
+    url: "https://tautulli.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: kavita
+  namespace: monitoring
+spec:
+  config:
+    name: "Kavita"
+    type: "http"
+    url: "http://kavita.media.svc.cluster.local:5000"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: kavita-external
+  namespace: monitoring
+spec:
+  config:
+    name: "Kavita External"
+    type: "http"
+    url: "https://kavita.rinzler.cloud"
+    interval: 300
+    retryInterval: 60
+    maxretries: 3
+---
+# Monitoring Services (Exporters)
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: node-exporter
+  namespace: monitoring
+spec:
+  config:
+    name: "Node Exporter"
+    type: "http"
+    url: "http://node-exporter.monitoring.svc.cluster.local:9100/metrics"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+    keyword: "node_"
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: exportarr-sonarr
+  namespace: monitoring
+spec:
+  config:
+    name: "Exportarr Sonarr"
+    type: "http"
+    url: "http://exportarr-sonarr.monitoring.svc.cluster.local:9708/metrics"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+    keyword: "sonarr_"
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: exportarr-radarr
+  namespace: monitoring
+spec:
+  config:
+    name: "Exportarr Radarr"
+    type: "http"
+    url: "http://exportarr-radarr.monitoring.svc.cluster.local:9707/metrics"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+    keyword: "radarr_"
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: exportarr-lidarr
+  namespace: monitoring
+spec:
+  config:
+    name: "Exportarr Lidarr"
+    type: "http"
+    url: "http://exportarr-lidarr.monitoring.svc.cluster.local:9709/metrics"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+    keyword: "lidarr_"
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: exportarr-bazarr
+  namespace: monitoring
+spec:
+  config:
+    name: "Exportarr Bazarr"
+    type: "http"
+    url: "http://exportarr-bazarr.monitoring.svc.cluster.local:9710/metrics"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+    keyword: "bazarr_"
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: tautulli-exporter
+  namespace: monitoring
+spec:
+  config:
+    name: "Tautulli Exporter"
+    type: "http"
+    url: "http://tautulli-exporter.monitoring.svc.cluster.local:9487/metrics"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+    keyword: "tautulli_"
+---
+# Cert Manager
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: cert-manager
+  namespace: monitoring
+spec:
+  config:
+    name: "Cert Manager"
+    type: "http"
+    url: "http://cert-manager.cert-manager.svc.cluster.local:9402/metrics"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+    keyword: "certmanager_"
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: cert-manager-webhook
+  namespace: monitoring
+spec:
+  config:
+    name: "Cert Manager Webhook"
+    type: "port"
+    hostname: "cert-manager-webhook.cert-manager.svc.cluster.local"
+    port: 443
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+# Network Services
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: pihole-web
+  namespace: monitoring
+spec:
+  config:
+    name: "PiHole Web"
+    type: "http"
+    url: "http://pihole-web.network-services.svc.cluster.local:8081"
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: pihole-dns
+  namespace: monitoring
+spec:
+  config:
+    name: "PiHole DNS"
+    type: "port"
+    hostname: "pihole-dns.network-services.svc.cluster.local"
+    port: 53
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
+---
+apiVersion: autokuma.bigboot.dev/v1
+kind: KumaEntity
+metadata:
+  name: samba
+  namespace: monitoring
+spec:
+  config:
+    name: "Samba"
+    type: "port"
+    hostname: "samba.network-services.svc.cluster.local"
+    port: 445
+    interval: 60
+    retryInterval: 20
+    maxretries: 3
