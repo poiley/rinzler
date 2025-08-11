@@ -24,7 +24,8 @@ spec:
   config:
     name: "Traefik Dashboard"
     type: "http"
-    url: "https://traefik.rinzler.cloud"
+    url: "https://traefik.rinzler.cloud/dashboard/"
+    accepted_statuscodes: "200-401"
     interval: 300
     retryInterval: 60
     maxretries: 3
@@ -52,7 +53,8 @@ spec:
   config:
     name: "Grafana"
     type: "http"
-    url: "http://grafana.monitoring.svc.cluster.local:3000/api/health"
+    url: "http://grafana.monitoring.svc.cluster.local:3000"
+    accepted_statuscodes: "200-302"
     interval: 60
     retryInterval: 20
     maxretries: 3
@@ -94,7 +96,8 @@ spec:
   config:
     name: "Plex External"
     type: "http"
-    url: "https://plex.rinzler.cloud"
+    url: "https://plex.rinzler.cloud/web/index.html"
+    accepted_statuscodes: "200-401"
     interval: 300
     retryInterval: 60
     maxretries: 3
@@ -108,7 +111,8 @@ spec:
   config:
     name: "Sonarr"
     type: "http"
-    url: "http://sonarr.arr-stack.svc.cluster.local:8989/api/v3/health"
+    url: "http://sonarr.arr-stack.svc.cluster.local:8989"
+    accepted_statuscodes: "200-302"
     interval: 60
     retryInterval: 20
     maxretries: 3
@@ -136,7 +140,8 @@ spec:
   config:
     name: "Radarr"
     type: "http"
-    url: "http://radarr.arr-stack.svc.cluster.local:7878/api/v3/health"
+    url: "http://radarr.arr-stack.svc.cluster.local:7878"
+    accepted_statuscodes: "200-302"
     interval: 60
     retryInterval: 20
     maxretries: 3
