@@ -304,7 +304,6 @@ spec:
     interval: 60
     retryInterval: 20
     maxretries: 3
-    keyword: "sonarr_"
 ---
 apiVersion: autokuma.bigboot.dev/v1
 kind: KumaEntity
@@ -319,7 +318,6 @@ spec:
     interval: 60
     retryInterval: 20
     maxretries: 3
-    keyword: "radarr_"
 ---
 apiVersion: autokuma.bigboot.dev/v1
 kind: KumaEntity
@@ -334,7 +332,6 @@ spec:
     interval: 60
     retryInterval: 20
     maxretries: 3
-    keyword: "lidarr_"
 ---
 apiVersion: autokuma.bigboot.dev/v1
 kind: KumaEntity
@@ -349,7 +346,6 @@ spec:
     interval: 60
     retryInterval: 20
     maxretries: 3
-    keyword: "bazarr_"
 ---
 apiVersion: autokuma.bigboot.dev/v1
 kind: KumaEntity
@@ -364,7 +360,6 @@ spec:
     interval: 60
     retryInterval: 20
     maxretries: 3
-    keyword: "tautulli_"
 ---
 # Cert Manager
 apiVersion: autokuma.bigboot.dev/v1
