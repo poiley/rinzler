@@ -15,6 +15,49 @@ spec:
       labels:
         app: homeassistant
     spec:
+      initContainers:
+      - name: setup-http-config
+        image: busybox:1.35
+        command: 
+        - sh
+        - -c
+        - |
+          echo "Checking for HTTP configuration..."
+          if [ ! -f /config/configuration.yaml ]; then
+            echo "configuration.yaml not found, creating basic config"
+            cat > /config/configuration.yaml <<EOF
+          # Home Assistant configuration
+          default_config:
+          
+          # HTTP configuration for reverse proxy
+          http:
+            use_x_forwarded_for: true
+            trusted_proxies:
+              - 10.42.0.0/16
+              - 127.0.0.1
+              - ::1
+          EOF
+          else
+            echo "configuration.yaml exists, checking for HTTP config"
+            if ! grep -q "^http:" /config/configuration.yaml; then
+              echo "Adding HTTP configuration to existing config"
+              cat >> /config/configuration.yaml <<EOF
+          
+          # HTTP configuration for reverse proxy
+          http:
+            use_x_forwarded_for: true
+            trusted_proxies:
+              - 10.42.0.0/16
+              - 127.0.0.1
+              - ::1
+          EOF
+            else
+              echo "HTTP configuration already exists"
+            fi
+          fi
+        volumeMounts:
+        - name: config
+          mountPath: /config
       nodeSelector:
         kubernetes.io/hostname: rinzler
       hostNetwork: true  # Required for device discovery
