@@ -17,6 +17,13 @@ resources:
   - grafana-deployment.yaml
   - grafana-ingress.yaml
 
+configMapGenerator:
+  - name: grafana-dashboards
+    files:
+      - uptime-kuma.json=../dashboards/uptime-kuma-dashboard.json
+      - arr-services.json=../dashboards/arr-services-dashboard.json
+      - rinzler-services.json=../dashboards/rinzler-services-dashboard.json
+
 # Note: Secrets are managed by apply-secrets.sh script
 # - grafana-secret
 # - monitoring-secrets

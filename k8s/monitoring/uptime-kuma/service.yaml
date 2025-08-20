@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: uptime-kuma
   namespace: monitoring
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3001"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: uptime-kuma

@@ -85,6 +85,13 @@ data:
         static_configs:
           - targets: ['exportarr-bazarr.monitoring:9710']
 
+      # Uptime Kuma metrics
+      - job_name: 'uptime-kuma'
+        static_configs:
+          - targets: ['uptime-kuma.monitoring:3001']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+
       # Kubernetes metrics
       - job_name: 'kubernetes-pods'
         kubernetes_sd_configs:
