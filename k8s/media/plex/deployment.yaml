@@ -16,7 +16,7 @@ spec:
         app: plex
     spec:
       nodeSelector:
-        kubernetes.io/hostname: rinzler
+        kubernetes.io/hostname: mini
       containers:
       - name: plex
         image: lscr.io/linuxserver/plex:latest
@@ -85,10 +85,10 @@ spec:
           mountPath: /transcode
         resources:
           limits:
-            cpu: 6
-            memory: 10Gi
+            cpu: 7
+            memory: 7Gi
           requests:
-            cpu: 2
+            cpu: 6
             memory: 6Gi
       volumes:
       - name: config
