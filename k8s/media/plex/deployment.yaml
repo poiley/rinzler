@@ -16,7 +16,7 @@ spec:
         app: plex
     spec:
       nodeSelector:
-        kubernetes.io/hostname: mini-7832afb8
+        kubernetes.io/hostname: mini
       containers:
       - name: plex
         image: lscr.io/linuxserver/plex:latest
