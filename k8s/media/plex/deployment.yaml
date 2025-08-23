@@ -92,7 +92,9 @@ spec:
             memory: 6Gi
       volumes:
       - name: config
-        emptyDir: {}
+        hostPath:
+          path: /storage/docker-volumes/plex_data_arm64
+          type: Directory
       - name: media
         hostPath:
           path: /storage/media
