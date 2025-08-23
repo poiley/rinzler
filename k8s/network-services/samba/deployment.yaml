@@ -37,6 +37,8 @@ spec:
           value: "1000"
         - name: SHARE
           value: "mount;/mount;yes;no;yes;all;none;none"
+        - name: SHARE2
+          value: "plex_config_arm64;/plex_config;yes;no;yes;all;none;none"
         ports:
         - containerPort: 139
           name: netbios-ssn
@@ -45,6 +47,8 @@ spec:
         volumeMounts:
         - name: storage
           mountPath: /mount
+        - name: plex-config
+          mountPath: /plex_config
         - name: samba-lib
           mountPath: /var/lib/samba
         - name: samba-cache
@@ -73,6 +77,10 @@ spec:
       - name: storage
         hostPath:
           path: /storage
+          type: Directory
+      - name: plex-config
+        hostPath:
+          path: /storage/docker-volumes/plex_data_arm64
           type: Directory
       - name: samba-lib
         emptyDir: {}
