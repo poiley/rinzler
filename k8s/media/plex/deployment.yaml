@@ -93,8 +93,8 @@ spec:
       volumes:
       - name: config
         hostPath:
-          path: /storage/docker-volumes/plex_data_arm64
-          type: Directory
+          path: /tmp/plex_config
+          type: DirectoryOrCreate
       - name: media
         hostPath:
           path: /storage/media
