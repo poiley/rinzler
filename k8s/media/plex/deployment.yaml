@@ -92,9 +92,7 @@ spec:
             memory: 6Gi
       volumes:
       - name: config
-        hostPath:
-          path: /storage/docker-volumes/plex_data/plex_data/_data
-          type: Directory
+        emptyDir: {}
       - name: media
         hostPath:
           path: /storage/media
